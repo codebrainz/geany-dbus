@@ -1,0 +1,64 @@
+--- geany2.vapi	2011-02-28 17:28:43.654231000 -0800
++++ geany.vapi	2011-02-28 19:44:13.054231002 -0800
+@@ -29,7 +29,7 @@
+ 		public Project							project;
+ 	}
+ 	[CCode (cname = "GeanyInterfacePrefs")]
+-	public struct InterfacePrefs {
++	public class InterfacePrefs {
+ 		public bool		sidebar_symbol_visible;
+ 		public bool		sidebar_openfiles_visible;
+ 		public string	editor_font;
+@@ -197,7 +197,7 @@
+ 			has_type_id = false)]
+ 	public class Document {
+ 		public bool						valid;
+-		public int						idx;
++		public int						index;
+ 		public bool						has_tags;
+ 		public string					file_name;
+ 		public string					encoding;
+@@ -230,7 +230,8 @@
+ 		public void						set_text_changed (bool changed);
+ 		public void						set_filetype (Filetype type);
+ 		public bool						close ();
+-		public static unowned Document?	index (int idx);
++		[CCode(cname="document_index")]
++		public static unowned Document?	get_index (int idx);
+ 		public bool						save_file_as (string utf8_fname);
+ 		public void						rename_file (string new_filename);
+ 		public Gdk.Color				get_status_color ();
+@@ -447,12 +448,12 @@
+ 			public unowned string author;
+ 			
+ 			[CCode (cname = "__geany_vala_plugin_SET_INFO")]
+-			public void @set (string name, string? description, string? version, string? author)
++			public void @set (string? name, string? description, string? version, string? author)
+ 			{
+ 				this.name			= name;
+ 				this.description	= description;
+ 				this.version		= version;
+-				this.author			= author;
++				this.author		= author;
+ 			}
+ 		}
+ 		[CCode (cname = "PluginCallback")]
+@@ -487,7 +488,7 @@
+ 		[CCode (cname = "GEANY_ABI_VERSION")]
+ 		static int ABI_VERSION;
+ 		
+-		public Info info;
++		public Info? info;
+ 		
+ 		public void		add_toolbar_item (Gtk.ToolItem item);
+ 		public void		module_make_resident ();
+@@ -504,7 +505,8 @@
+ 		public string	file_name;
+ 		public string	base_path;
+ 		public int		type;
+-		public string[]	file_patterns;
++		[CCode(array_length=false)]
++		public string[] file_patterns;
+ 	}
+ 	[CCode (cname = "ScintillaObject", cprefix = "scintilla_")]
+ 	public class Scintilla : Gtk.Container {
