@@ -6,6 +6,8 @@
 *.exe
 *.o
 *.so
+*.lo
+*.la
 
 # Packages #
 ############
@@ -32,5 +34,30 @@
 ehthumbs.db
 Icon?
 Thumbs.db
-
 geany.project
+
+# Autotools #
+#############
+Makefile
+Makefile.in
+src/Makefile
+src/Makefile.in
+aclocal.m4
+config.guess
+config.log
+config.status
+config.sub
+configure
+install-sh
+libtool
+ltmain.sh
+missing
+depcomp
+autom4te.cache
+compile
+.deps
+.libs
+*.stamp
+data/
+
+

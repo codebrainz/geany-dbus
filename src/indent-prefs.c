@@ -224,15 +224,15 @@ static void _dbus_geany_dbus_indent_prefs_get_width (GeanyDBusIndentPrefs* self,
 static void _dbus_geany_dbus_indent_prefs_set_width (GeanyDBusIndentPrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gint val = 0;
-	GVariant* _tmp27_;
+	GVariant* _tmp22_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp27_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp27_);
-	g_variant_unref (_tmp27_);
+	_tmp22_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp22_);
+	g_variant_unref (_tmp22_);
 	geany_dbus_indent_prefs_set_width (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -259,15 +259,15 @@ static void _dbus_geany_dbus_indent_prefs_get_indent_type (GeanyDBusIndentPrefs*
 static void _dbus_geany_dbus_indent_prefs_set_indent_type (GeanyDBusIndentPrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	GeanyIndentType val = 0;
-	GVariant* _tmp28_;
+	GVariant* _tmp23_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp28_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp28_);
-	g_variant_unref (_tmp28_);
+	_tmp23_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp23_);
+	g_variant_unref (_tmp23_);
 	geany_dbus_indent_prefs_set_indent_type (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -294,15 +294,15 @@ static void _dbus_geany_dbus_indent_prefs_get_hard_tab_width (GeanyDBusIndentPre
 static void _dbus_geany_dbus_indent_prefs_set_hard_tab_width (GeanyDBusIndentPrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gint val = 0;
-	GVariant* _tmp29_;
+	GVariant* _tmp24_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp29_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp29_);
-	g_variant_unref (_tmp29_);
+	_tmp24_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp24_);
+	g_variant_unref (_tmp24_);
 	geany_dbus_indent_prefs_set_hard_tab_width (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -329,15 +329,15 @@ static void _dbus_geany_dbus_indent_prefs_get_auto_indent_mode (GeanyDBusIndentP
 static void _dbus_geany_dbus_indent_prefs_set_auto_indent_mode (GeanyDBusIndentPrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	GeanyAutoIndent val = 0;
-	GVariant* _tmp30_;
+	GVariant* _tmp25_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp30_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp30_);
-	g_variant_unref (_tmp30_);
+	_tmp25_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp25_);
+	g_variant_unref (_tmp25_);
 	geany_dbus_indent_prefs_set_auto_indent_mode (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -364,15 +364,15 @@ static void _dbus_geany_dbus_indent_prefs_get_detect_type (GeanyDBusIndentPrefs*
 static void _dbus_geany_dbus_indent_prefs_set_detect_type (GeanyDBusIndentPrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp31_;
+	GVariant* _tmp26_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp31_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp31_);
-	g_variant_unref (_tmp31_);
+	_tmp26_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp26_);
+	g_variant_unref (_tmp26_);
 	geany_dbus_indent_prefs_set_detect_type (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);

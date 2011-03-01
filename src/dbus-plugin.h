@@ -6,9 +6,9 @@
 
 #include <glib.h>
 #include <geanyplugin.h>
+#include <glib-object.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glib-object.h>
 
 G_BEGIN_DECLS
 
@@ -64,19 +64,6 @@ typedef struct _GeanyDBusProjectClass GeanyDBusProjectClass;
 typedef struct _GeanyDBusWidgets GeanyDBusWidgets;
 typedef struct _GeanyDBusWidgetsClass GeanyDBusWidgetsClass;
 typedef struct _GeanyDBusApplicationPrivate GeanyDBusApplicationPrivate;
-typedef struct _GeanyDBusInterfacePrefsPrivate GeanyDBusInterfacePrefsPrivate;
-typedef struct _GeanyDBusProjectPrivate GeanyDBusProjectPrivate;
-
-#define GEANY_DBUS_TYPE_INDENT_PREFS (geany_dbus_indent_prefs_get_type ())
-#define GEANY_DBUS_INDENT_PREFS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEANY_DBUS_TYPE_INDENT_PREFS, GeanyDBusIndentPrefs))
-#define GEANY_DBUS_INDENT_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GEANY_DBUS_TYPE_INDENT_PREFS, GeanyDBusIndentPrefsClass))
-#define GEANY_DBUS_IS_INDENT_PREFS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEANY_DBUS_TYPE_INDENT_PREFS))
-#define GEANY_DBUS_IS_INDENT_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GEANY_DBUS_TYPE_INDENT_PREFS))
-#define GEANY_DBUS_INDENT_PREFS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GEANY_DBUS_TYPE_INDENT_PREFS, GeanyDBusIndentPrefsClass))
-
-typedef struct _GeanyDBusIndentPrefs GeanyDBusIndentPrefs;
-typedef struct _GeanyDBusIndentPrefsClass GeanyDBusIndentPrefsClass;
-typedef struct _GeanyDBusIndentPrefsPrivate GeanyDBusIndentPrefsPrivate;
 
 #define GEANY_DBUS_TYPE_DOCUMENT (geany_dbus_document_get_type ())
 #define GEANY_DBUS_DOCUMENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEANY_DBUS_TYPE_DOCUMENT, GeanyDBusDocument))
@@ -88,6 +75,19 @@ typedef struct _GeanyDBusIndentPrefsPrivate GeanyDBusIndentPrefsPrivate;
 typedef struct _GeanyDBusDocument GeanyDBusDocument;
 typedef struct _GeanyDBusDocumentClass GeanyDBusDocumentClass;
 typedef struct _GeanyDBusDocumentPrivate GeanyDBusDocumentPrivate;
+typedef struct _GeanyDBusInterfacePrefsPrivate GeanyDBusInterfacePrefsPrivate;
+
+#define GEANY_DBUS_TYPE_INDENT_PREFS (geany_dbus_indent_prefs_get_type ())
+#define GEANY_DBUS_INDENT_PREFS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEANY_DBUS_TYPE_INDENT_PREFS, GeanyDBusIndentPrefs))
+#define GEANY_DBUS_INDENT_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GEANY_DBUS_TYPE_INDENT_PREFS, GeanyDBusIndentPrefsClass))
+#define GEANY_DBUS_IS_INDENT_PREFS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEANY_DBUS_TYPE_INDENT_PREFS))
+#define GEANY_DBUS_IS_INDENT_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GEANY_DBUS_TYPE_INDENT_PREFS))
+#define GEANY_DBUS_INDENT_PREFS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GEANY_DBUS_TYPE_INDENT_PREFS, GeanyDBusIndentPrefsClass))
+
+typedef struct _GeanyDBusIndentPrefs GeanyDBusIndentPrefs;
+typedef struct _GeanyDBusIndentPrefsClass GeanyDBusIndentPrefsClass;
+typedef struct _GeanyDBusIndentPrefsPrivate GeanyDBusIndentPrefsPrivate;
+typedef struct _GeanyDBusProjectPrivate GeanyDBusProjectPrivate;
 typedef struct _GeanyDBusWidgetsPrivate GeanyDBusWidgetsPrivate;
 
 struct _GeanyDBusServer {
@@ -108,21 +108,21 @@ struct _GeanyDBusApplicationClass {
 	GObjectClass parent_class;
 };
 
+struct _GeanyDBusDocument {
+	GObject parent_instance;
+	GeanyDBusDocumentPrivate * priv;
+};
+
+struct _GeanyDBusDocumentClass {
+	GObjectClass parent_class;
+};
+
 struct _GeanyDBusInterfacePrefs {
 	GObject parent_instance;
 	GeanyDBusInterfacePrefsPrivate * priv;
 };
 
 struct _GeanyDBusInterfacePrefsClass {
-	GObjectClass parent_class;
-};
-
-struct _GeanyDBusProject {
-	GObject parent_instance;
-	GeanyDBusProjectPrivate * priv;
-};
-
-struct _GeanyDBusProjectClass {
 	GObjectClass parent_class;
 };
 
@@ -135,12 +135,12 @@ struct _GeanyDBusIndentPrefsClass {
 	GObjectClass parent_class;
 };
 
-struct _GeanyDBusDocument {
+struct _GeanyDBusProject {
 	GObject parent_instance;
-	GeanyDBusDocumentPrivate * priv;
+	GeanyDBusProjectPrivate * priv;
 };
 
-struct _GeanyDBusDocumentClass {
+struct _GeanyDBusProjectClass {
 	GObjectClass parent_class;
 };
 
@@ -157,8 +157,6 @@ struct _GeanyDBusWidgetsClass {
 extern GeanyPlugin* geany_plugin;
 extern GeanyData* geany_data;
 extern GeanyFunctions* geany_functions;
-extern char* config_dir;
-extern char* config_filename;
 void plugin_set_info (PluginInfo* info);
 gint plugin_version_check (gint abi_version);
 void plugin_init (GeanyData* data);
@@ -198,6 +196,17 @@ const char* geany_dbus_application_get_datadir (GeanyDBusApplication* self);
 void geany_dbus_application_set_datadir (GeanyDBusApplication* self, const char* val);
 const char* geany_dbus_application_get_docdir (GeanyDBusApplication* self);
 void geany_dbus_application_set_docdir (GeanyDBusApplication* self, const char* val);
+GType geany_dbus_document_get_type (void) G_GNUC_CONST;
+guint geany_dbus_document_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
+GeanyDBusDocument* geany_dbus_document_new (struct GeanyDocument* doc);
+GeanyDBusDocument* geany_dbus_document_construct (GType object_type, struct GeanyDocument* doc);
+guint geany_dbus_document_get_dbus_index (GeanyDBusDocument* self);
+void geany_dbus_document_set_dbus_index (GeanyDBusDocument* self, guint value);
+gboolean geany_dbus_document_get_is_valid (GeanyDBusDocument* self);
+gint geany_dbus_document_get_index (GeanyDBusDocument* self);
+const char* geany_dbus_document_get_file_name (GeanyDBusDocument* self);
+void geany_dbus_document_set_text (GeanyDBusDocument* self, const char* value);
+guint geany_dbus_document_get_text_length (GeanyDBusDocument* self);
 GeanyDBusInterfacePrefs* geany_dbus_interface_prefs_new (GeanyInterfacePrefs* prefs);
 GeanyDBusInterfacePrefs* geany_dbus_interface_prefs_construct (GType object_type, GeanyInterfacePrefs* prefs);
 gboolean geany_dbus_interface_prefs_get_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self);
@@ -236,18 +245,6 @@ gboolean geany_dbus_interface_prefs_get_msgwin_messages_visible (GeanyDBusInterf
 void geany_dbus_interface_prefs_set_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, gboolean val);
 gboolean geany_dbus_interface_prefs_get_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self);
 void geany_dbus_interface_prefs_set_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, gboolean val);
-GeanyDBusProject* geany_dbus_project_new (GeanyProject* proj);
-GeanyDBusProject* geany_dbus_project_construct (GType object_type, GeanyProject* proj);
-const char* geany_dbus_project_get_name (GeanyDBusProject* self);
-void geany_dbus_project_set_name (GeanyDBusProject* self, const char* val);
-const char* geany_dbus_project_get_description (GeanyDBusProject* self);
-void geany_dbus_project_set_description (GeanyDBusProject* self, const char* val);
-const char* geany_dbus_project_get_file_name (GeanyDBusProject* self);
-void geany_dbus_project_set_file_name (GeanyDBusProject* self, const char* val);
-const char* geany_dbus_project_get_base_path (GeanyDBusProject* self);
-void geany_dbus_project_set_base_path (GeanyDBusProject* self, const char* val);
-gint geany_dbus_project_get_project_type (GeanyDBusProject* self);
-void geany_dbus_project_set_project_type (GeanyDBusProject* self, gint val);
 GType geany_dbus_indent_prefs_get_type (void) G_GNUC_CONST;
 guint geany_dbus_indent_prefs_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
 GeanyDBusIndentPrefs* geany_dbus_indent_prefs_new (GeanyIndentPrefs* prefs);
@@ -262,17 +259,18 @@ GeanyAutoIndent geany_dbus_indent_prefs_get_auto_indent_mode (GeanyDBusIndentPre
 void geany_dbus_indent_prefs_set_auto_indent_mode (GeanyDBusIndentPrefs* self, GeanyAutoIndent val);
 gboolean geany_dbus_indent_prefs_get_detect_type (GeanyDBusIndentPrefs* self);
 void geany_dbus_indent_prefs_set_detect_type (GeanyDBusIndentPrefs* self, gboolean val);
-GType geany_dbus_document_get_type (void) G_GNUC_CONST;
-guint geany_dbus_document_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
-GeanyDBusDocument* geany_dbus_document_new (struct GeanyDocument* doc);
-GeanyDBusDocument* geany_dbus_document_construct (GType object_type, struct GeanyDocument* doc);
-guint geany_dbus_document_get_dbus_index (GeanyDBusDocument* self);
-void geany_dbus_document_set_dbus_index (GeanyDBusDocument* self, guint value);
-gboolean geany_dbus_document_get_is_valid (GeanyDBusDocument* self);
-gint geany_dbus_document_get_index (GeanyDBusDocument* self);
-const char* geany_dbus_document_get_file_name (GeanyDBusDocument* self);
-void geany_dbus_document_set_text (GeanyDBusDocument* self, const char* value);
-guint geany_dbus_document_get_text_length (GeanyDBusDocument* self);
+GeanyDBusProject* geany_dbus_project_new (GeanyProject* proj);
+GeanyDBusProject* geany_dbus_project_construct (GType object_type, GeanyProject* proj);
+const char* geany_dbus_project_get_name (GeanyDBusProject* self);
+void geany_dbus_project_set_name (GeanyDBusProject* self, const char* val);
+const char* geany_dbus_project_get_description (GeanyDBusProject* self);
+void geany_dbus_project_set_description (GeanyDBusProject* self, const char* val);
+const char* geany_dbus_project_get_file_name (GeanyDBusProject* self);
+void geany_dbus_project_set_file_name (GeanyDBusProject* self, const char* val);
+const char* geany_dbus_project_get_base_path (GeanyDBusProject* self);
+void geany_dbus_project_set_base_path (GeanyDBusProject* self, const char* val);
+gint geany_dbus_project_get_project_type (GeanyDBusProject* self);
+void geany_dbus_project_set_project_type (GeanyDBusProject* self, gint val);
 GeanyDBusWidgets* geany_dbus_widgets_new (GeanyMainWidgets* widgets);
 GeanyDBusWidgets* geany_dbus_widgets_construct (GType object_type, GeanyMainWidgets* widgets);
 
