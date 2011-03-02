@@ -1,52 +1,77 @@
-using GLib;
+/*
+ * app.vala - Geany application interface for DBus plugin
+ * 
+ * Copyright 2011 Matthew Brush <mbrush@leftclick.ca>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ * 
+ */
+
 using Gtk;
 using Geany;
 
 namespace GeanyDBus
 {
-	/* Provides an interface to GeanyApp structure */
 		
-	[DBus(name="org.geany.DBus.Application")]
+	[DBus(name="org.geany.DBus.Interfaces.Application")]
 	public class Application: GLib.Object
 	{
-		private unowned Geany.App? app;
+
+		private unowned Geany.App app;		
 		
-		public Application(Geany.App? app) {
+		public Application(Geany.App app) {
 			this.app = app;
+			
+			geany_plugin.signal_connect (null, 
+										 "build-start", 
+										 true, 
+										 (GLib.Callback)on_build_start,
+										 this);
 		}
 		
-		public bool get_debug_mode() {
-			return_val_if_fail(app != null, false);
-			return app.debug_mode;
+		/* signals */
+		public virtual signal void build_starting () {
+			debug("Emitted BuildStarting signal");
 		}
-		public void set_debug_mode(bool val) {
-			return_if_fail(app != null);
-			app.debug_mode = val;
+
+		/* properties */
+		public bool debug_mode {
+			get { return app.debug_mode; }
+			set { app.debug_mode = value; }
 		}
-		public unowned string get_configdir() {
-			return_val_if_fail(app != null, "");
-			return app.configdir;
+		
+		public unowned string config_dir {
+			get { return app.config_dir; }
+			set { app.config_dir = value; }
 		}
-		public void set_configdir(string val) {
-			return_if_fail(app != null);
-			app.configdir = val;
+		
+		public unowned string data_dir {
+			get { return app.data_dir; }
+			set { app.data_dir = value; }
 		}
-		public unowned string get_datadir() {
-			return_val_if_fail(app != null, "");
-			return app.datadir;
-		}
-		public void set_datadir(string val) {
-			return_if_fail(app != null);
-			app.datadir = val;
-		}
-		public unowned string get_docdir() {
-			return_val_if_fail(app != null, "");
-			return app.docdir;
-		}
-		public void set_docdir(string val) {
-			return_if_fail(app != null);
-			app.docdir = val;
+		
+		public unowned string doc_dir {
+			get { return app.doc_dir; }
+			set { app.doc_dir = value; }
 		}	
+		
+		/* signal forwarders */
+		private void on_build_start (GLib.Object obj) {
+			build_starting ();
+		}
 	}	
 
 }

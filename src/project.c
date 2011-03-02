@@ -237,15 +237,15 @@ static void _dbus_geany_dbus_project_get_name (GeanyDBusProject* self, GVariant*
 static void _dbus_geany_dbus_project_set_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	char* val = NULL;
-	GVariant* _tmp27_;
+	GVariant* _tmp23_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp27_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp27_, NULL);
-	g_variant_unref (_tmp27_);
+	_tmp23_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_dup_string (_tmp23_, NULL);
+	g_variant_unref (_tmp23_);
 	geany_dbus_project_set_name (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_g_free0 (val);
@@ -273,15 +273,15 @@ static void _dbus_geany_dbus_project_get_description (GeanyDBusProject* self, GV
 static void _dbus_geany_dbus_project_set_description (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	char* val = NULL;
-	GVariant* _tmp28_;
+	GVariant* _tmp24_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp28_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp28_, NULL);
-	g_variant_unref (_tmp28_);
+	_tmp24_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_dup_string (_tmp24_, NULL);
+	g_variant_unref (_tmp24_);
 	geany_dbus_project_set_description (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_g_free0 (val);
@@ -309,15 +309,15 @@ static void _dbus_geany_dbus_project_get_file_name (GeanyDBusProject* self, GVar
 static void _dbus_geany_dbus_project_set_file_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	char* val = NULL;
-	GVariant* _tmp29_;
+	GVariant* _tmp25_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp29_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp29_, NULL);
-	g_variant_unref (_tmp29_);
+	_tmp25_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_dup_string (_tmp25_, NULL);
+	g_variant_unref (_tmp25_);
 	geany_dbus_project_set_file_name (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_g_free0 (val);
@@ -345,15 +345,15 @@ static void _dbus_geany_dbus_project_get_base_path (GeanyDBusProject* self, GVar
 static void _dbus_geany_dbus_project_set_base_path (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	char* val = NULL;
-	GVariant* _tmp30_;
+	GVariant* _tmp26_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp30_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp30_, NULL);
-	g_variant_unref (_tmp30_);
+	_tmp26_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_dup_string (_tmp26_, NULL);
+	g_variant_unref (_tmp26_);
 	geany_dbus_project_set_base_path (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_g_free0 (val);
@@ -381,15 +381,15 @@ static void _dbus_geany_dbus_project_get_project_type (GeanyDBusProject* self, G
 static void _dbus_geany_dbus_project_set_project_type (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gint val = 0;
-	GVariant* _tmp31_;
+	GVariant* _tmp27_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp31_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp31_);
-	g_variant_unref (_tmp31_);
+	_tmp27_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp27_);
+	g_variant_unref (_tmp27_);
 	geany_dbus_project_set_project_type (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);

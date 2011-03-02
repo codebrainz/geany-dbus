@@ -24,7 +24,6 @@ namespace GeanyDBus
 		public GeanyDBus.Application application { get; set; }
 		public GeanyDBus.InterfacePrefs interface_prefs { get; set; }
 		public GeanyDBus.Project project { get; set; }
-		public GeanyDBus.Widgets widgets { get; set; }
 
 		private uint bus_id = 0;
 		private uint[] registered_objects;
@@ -43,7 +42,6 @@ namespace GeanyDBus
 			application = new GeanyDBus.Application (data.app);
 			interface_prefs = new GeanyDBus.InterfacePrefs (data.interface_prefs);
 			project = new GeanyDBus.Project (data.app.project);
-			widgets = new GeanyDBus.Widgets (data.main_widgets);
 			
 			registered_objects = new uint[] {};
 			registered_documents = new Gee.ArrayList<GeanyDBus.Document> ();
@@ -113,10 +111,8 @@ namespace GeanyDBus
 											"/org/geany/DBus/Project", 
 											this.project);
 				registered_objects += conn.register_object (
-											"/org/geany/DBus/Interface/Preferences", 
+											"/org/geany/DBus/UI/Preferences", 
 											this.interface_prefs);
-				//conn.register_object ("/org/geany/DBus/Interface/Widgets",
-				//					  this.widgets);
 			}
 			catch (IOError e) {
 				warning ("Could not register services: %s", e.message);
@@ -149,8 +145,10 @@ namespace GeanyDBus
 				string obj_path;
 				obj_path = "/org/geany/DBus/Documents/%d".printf (doc.index);
 				dbus_doc.dbus_index = conn.register_object (obj_path, dbus_doc);
-				if (dbus_doc.dbus_index > 0)
+				if (dbus_doc.dbus_index > 0) {
 					registered_documents.add(dbus_doc);
+					debug("Registered document\n");
+				}
 				else {
 					warning ("Failed to register document index %d", 
 							 dbus_doc.index);
@@ -170,8 +168,10 @@ namespace GeanyDBus
 				GeanyDBus.Document dbus_doc = registered_documents[i];
 				if (dbus_doc.index == doc.index) {
 					dbus_doc.before_close();
-					if (conn.unregister_object (dbus_doc.dbus_index))
+					if (conn.unregister_object (dbus_doc.dbus_index)) {
 						registered_documents.remove_at(i);
+						debug("Unregistered document\n");
+					}
 					else
 						warning ("Error unregistering doc id %d", 
 								 dbus_doc.index);
@@ -186,7 +186,7 @@ namespace GeanyDBus
 			for (int i=0; i < registered_documents.size; i++) {
 				GeanyDBus.Document dbus_doc = registered_documents[i];
 				if (dbus_doc.index == doc.index)
-					dbus_doc.save();
+					dbus_doc.saved ();
 			}
 		}
 		
@@ -198,7 +198,7 @@ namespace GeanyDBus
 			for (int i=0; i < registered_documents.size; i++) {
 				GeanyDBus.Document dbus_doc = registered_documents[i];
 				if (dbus_doc.index == doc.index)
-					dbus_doc.before_save();
+					dbus_doc.before_save ();
 			}
 		}
 		

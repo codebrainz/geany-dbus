@@ -52,7 +52,7 @@ public static void plugin_init (Geany.Data data)
 	geany_plugin.module_make_resident();
 	
 	config_dir = Path.build_path (Path.DIR_SEPARATOR_S, 
-								  geany_data.app.configdir,
+								  geany_data.app.config_dir,
 								  "plugins",
 								  "dbus");
 								  

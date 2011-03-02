@@ -47,15 +47,18 @@ GeanyDBusServer* dbus_server = NULL;
 
 
 
-static void __geany_vala_plugin_SET_INFO (PluginInfo *self, const char* name, const char* description, const char* version, const char* author) {
-	(*self).name = name;
-	(*self).description = description;
-	(*self).version = version;
-	(*self).author = author;
+static void __geany_vala_plugin_SET_INFO (PluginInfo* self, const char* name, const char* description, const char* version, const char* author) {
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (name != NULL);
+	self->name = name;
+	self->description = description;
+	self->version = version;
+	self->author = author;
 }
 
 
 void plugin_set_info (PluginInfo* info) {
+	g_return_if_fail (info != NULL);
 	__geany_vala_plugin_SET_INFO (info, "DBus Interface", "Interact with Geany using the DBus.", "0.1", "Matthew Brush <mbrush@leftclick.ca>");
 }
 
@@ -66,11 +69,7 @@ static gint __geany_vala_plugin_VERSION_CHECK (gint abi_version, gint api_requir
 		result = -1;
 		return result;
 	}
-	if (GEANY_API_VERSION < api_required) {
-		result = api_required;
-		return result;
-	}
-	result = 0;
+	result = api_required;
 	return result;
 }
 

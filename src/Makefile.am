@@ -20,5 +20,4 @@ dbus_la_SOURCES = 	plugin.vala \
 					document.vala \
 					iface-prefs.vala \
 					indent-prefs.vala \
-					project.vala \
-					widgets.vala
+					project.vala

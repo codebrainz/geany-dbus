@@ -573,15 +573,15 @@ static void _dbus_geany_dbus_interface_prefs_get_sidebar_symbol_visible (GeanyDB
 static void _dbus_geany_dbus_interface_prefs_set_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp4_;
+	GVariant* _tmp0_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp4_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp4_);
-	g_variant_unref (_tmp4_);
+	_tmp0_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp0_);
+	g_variant_unref (_tmp0_);
 	geany_dbus_interface_prefs_set_sidebar_symbol_visible (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -608,15 +608,15 @@ static void _dbus_geany_dbus_interface_prefs_get_sidebar_openfiles_visible (Gean
 static void _dbus_geany_dbus_interface_prefs_set_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp5_;
+	GVariant* _tmp1_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp5_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp5_);
-	g_variant_unref (_tmp5_);
+	_tmp1_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp1_);
+	g_variant_unref (_tmp1_);
 	geany_dbus_interface_prefs_set_sidebar_openfiles_visible (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -643,15 +643,15 @@ static void _dbus_geany_dbus_interface_prefs_get_editor_font (GeanyDBusInterface
 static void _dbus_geany_dbus_interface_prefs_set_editor_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	char* val = NULL;
-	GVariant* _tmp6_;
+	GVariant* _tmp2_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp6_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp6_, NULL);
-	g_variant_unref (_tmp6_);
+	_tmp2_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_dup_string (_tmp2_, NULL);
+	g_variant_unref (_tmp2_);
 	geany_dbus_interface_prefs_set_editor_font (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_g_free0 (val);
@@ -679,15 +679,15 @@ static void _dbus_geany_dbus_interface_prefs_get_tagbar_font (GeanyDBusInterface
 static void _dbus_geany_dbus_interface_prefs_set_tagbar_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	char* val = NULL;
-	GVariant* _tmp7_;
+	GVariant* _tmp3_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp7_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp7_, NULL);
-	g_variant_unref (_tmp7_);
+	_tmp3_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_dup_string (_tmp3_, NULL);
+	g_variant_unref (_tmp3_);
 	geany_dbus_interface_prefs_set_tagbar_font (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_g_free0 (val);
@@ -715,15 +715,15 @@ static void _dbus_geany_dbus_interface_prefs_get_msgwin_font (GeanyDBusInterface
 static void _dbus_geany_dbus_interface_prefs_set_msgwin_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	char* val = NULL;
-	GVariant* _tmp8_;
+	GVariant* _tmp4_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp8_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp8_, NULL);
-	g_variant_unref (_tmp8_);
+	_tmp4_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_dup_string (_tmp4_, NULL);
+	g_variant_unref (_tmp4_);
 	geany_dbus_interface_prefs_set_msgwin_font (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_g_free0 (val);
@@ -751,15 +751,15 @@ static void _dbus_geany_dbus_interface_prefs_get_show_notebook_tabs (GeanyDBusIn
 static void _dbus_geany_dbus_interface_prefs_set_show_notebook_tabs (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp9_;
+	GVariant* _tmp5_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp9_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp9_);
-	g_variant_unref (_tmp9_);
+	_tmp5_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp5_);
+	g_variant_unref (_tmp5_);
 	geany_dbus_interface_prefs_set_show_notebook_tabs (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -786,15 +786,15 @@ static void _dbus_geany_dbus_interface_prefs_get_tab_pos_editor (GeanyDBusInterf
 static void _dbus_geany_dbus_interface_prefs_set_tab_pos_editor (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gint val = 0;
-	GVariant* _tmp10_;
+	GVariant* _tmp6_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp10_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp10_);
-	g_variant_unref (_tmp10_);
+	_tmp6_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp6_);
+	g_variant_unref (_tmp6_);
 	geany_dbus_interface_prefs_set_tab_pos_editor (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -821,15 +821,15 @@ static void _dbus_geany_dbus_interface_prefs_get_tab_pos_msgwin (GeanyDBusInterf
 static void _dbus_geany_dbus_interface_prefs_set_tab_pos_msgwin (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gint val = 0;
-	GVariant* _tmp11_;
+	GVariant* _tmp7_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp11_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp11_);
-	g_variant_unref (_tmp11_);
+	_tmp7_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp7_);
+	g_variant_unref (_tmp7_);
 	geany_dbus_interface_prefs_set_tab_pos_msgwin (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -856,15 +856,15 @@ static void _dbus_geany_dbus_interface_prefs_get_tab_pos_sidebar (GeanyDBusInter
 static void _dbus_geany_dbus_interface_prefs_set_tab_pos_sidebar (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gint val = 0;
-	GVariant* _tmp12_;
+	GVariant* _tmp8_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp12_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp12_);
-	g_variant_unref (_tmp12_);
+	_tmp8_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp8_);
+	g_variant_unref (_tmp8_);
 	geany_dbus_interface_prefs_set_tab_pos_sidebar (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -891,15 +891,15 @@ static void _dbus_geany_dbus_interface_prefs_get_statusbar_visible (GeanyDBusInt
 static void _dbus_geany_dbus_interface_prefs_set_statusbar_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp13_;
+	GVariant* _tmp9_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp13_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp13_);
-	g_variant_unref (_tmp13_);
+	_tmp9_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp9_);
+	g_variant_unref (_tmp9_);
 	geany_dbus_interface_prefs_set_statusbar_visible (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -926,15 +926,15 @@ static void _dbus_geany_dbus_interface_prefs_get_show_symbol_list_expanders (Gea
 static void _dbus_geany_dbus_interface_prefs_set_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp14_;
+	GVariant* _tmp10_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp14_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp14_);
-	g_variant_unref (_tmp14_);
+	_tmp10_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp10_);
+	g_variant_unref (_tmp10_);
 	geany_dbus_interface_prefs_set_show_symbol_list_expanders (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -961,15 +961,15 @@ static void _dbus_geany_dbus_interface_prefs_get_notebook_double_click_hides_wid
 static void _dbus_geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp15_;
+	GVariant* _tmp11_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp15_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp15_);
-	g_variant_unref (_tmp15_);
+	_tmp11_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp11_);
+	g_variant_unref (_tmp11_);
 	geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -996,15 +996,15 @@ static void _dbus_geany_dbus_interface_prefs_get_highlighting_invert_all (GeanyD
 static void _dbus_geany_dbus_interface_prefs_set_highlighting_invert_all (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp16_;
+	GVariant* _tmp12_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp16_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp16_);
-	g_variant_unref (_tmp16_);
+	_tmp12_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp12_);
+	g_variant_unref (_tmp12_);
 	geany_dbus_interface_prefs_set_highlighting_invert_all (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -1031,15 +1031,15 @@ static void _dbus_geany_dbus_interface_prefs_get_sidebar_pos (GeanyDBusInterface
 static void _dbus_geany_dbus_interface_prefs_set_sidebar_pos (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gint val = 0;
-	GVariant* _tmp17_;
+	GVariant* _tmp13_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp17_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp17_);
-	g_variant_unref (_tmp17_);
+	_tmp13_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_int32 (_tmp13_);
+	g_variant_unref (_tmp13_);
 	geany_dbus_interface_prefs_set_sidebar_pos (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -1066,15 +1066,15 @@ static void _dbus_geany_dbus_interface_prefs_get_msgwin_status_visible (GeanyDBu
 static void _dbus_geany_dbus_interface_prefs_set_msgwin_status_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp18_;
+	GVariant* _tmp14_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp18_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp18_);
-	g_variant_unref (_tmp18_);
+	_tmp14_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp14_);
+	g_variant_unref (_tmp14_);
 	geany_dbus_interface_prefs_set_msgwin_status_visible (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -1101,15 +1101,15 @@ static void _dbus_geany_dbus_interface_prefs_get_msgwin_compiler_visible (GeanyD
 static void _dbus_geany_dbus_interface_prefs_set_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp19_;
+	GVariant* _tmp15_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp19_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp19_);
-	g_variant_unref (_tmp19_);
+	_tmp15_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp15_);
+	g_variant_unref (_tmp15_);
 	geany_dbus_interface_prefs_set_msgwin_compiler_visible (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -1136,15 +1136,15 @@ static void _dbus_geany_dbus_interface_prefs_get_msgwin_messages_visible (GeanyD
 static void _dbus_geany_dbus_interface_prefs_set_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp20_;
+	GVariant* _tmp16_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp20_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp20_);
-	g_variant_unref (_tmp20_);
+	_tmp16_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp16_);
+	g_variant_unref (_tmp16_);
 	geany_dbus_interface_prefs_set_msgwin_messages_visible (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -1171,15 +1171,15 @@ static void _dbus_geany_dbus_interface_prefs_get_msgwin_scribble_visible (GeanyD
 static void _dbus_geany_dbus_interface_prefs_set_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
 	GError* error;
 	gboolean val = FALSE;
-	GVariant* _tmp21_;
+	GVariant* _tmp17_;
 	GVariantIter _arguments_iter;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	error = NULL;
 	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp21_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp21_);
-	g_variant_unref (_tmp21_);
+	_tmp17_ = g_variant_iter_next_value (&_arguments_iter);
+	val = g_variant_get_boolean (_tmp17_);
+	g_variant_unref (_tmp17_);
 	geany_dbus_interface_prefs_set_msgwin_scribble_visible (self, val);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
