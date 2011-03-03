@@ -20,7 +20,6 @@
  * 
  */
 
-using Gtk;
 using Geany;
 
 namespace GeanyDBus
@@ -83,12 +82,12 @@ namespace GeanyDBus
 		public void open_documents (string[] filenames) {
 			GLib.SList<string> fnames = new GLib.SList<string>();
 			for (int i=0; i < filenames.length; i++)
-				fnames.append(filenames[i]);
-			Geany.Document.open_files(fnames);
+				fnames.append (filenames[i]);
+			Geany.Document.open_files (fnames);
 		}
 		
 		public bool close_notebook_page (uint page_number) {
-			return Geany.Document.close_notebook_page(page_number);
+			return Geany.Document.close_notebook_page (page_number);
 		}
 				
 		public string current_document {

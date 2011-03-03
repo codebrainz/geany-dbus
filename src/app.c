@@ -284,7 +284,7 @@ char* geany_dbus_application_get_current_document (GeanyDBusApplication* self) {
 
 static void geany_dbus_application_real_build_starting (GeanyDBusApplication* self) {
 	g_return_if_fail (self != NULL);
-	g_debug ("app.vala:47: Emitted BuildStarting signal");
+	g_debug ("app.vala:46: Emitted BuildStarting signal");
 }
 
 

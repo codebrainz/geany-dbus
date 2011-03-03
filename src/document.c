@@ -22,7 +22,6 @@
  * MA 02110-1301, USA.
  * 
  */
-/* todo: use { owned get {} } in properties */
 
 #include <glib.h>
 #include <glib-object.h>

@@ -82,6 +82,7 @@ typedef struct _GeanyDBusProjectPrivate GeanyDBusProjectPrivate;
 struct _GeanyDBusServer {
 	GObject parent_instance;
 	GeanyDBusServerPrivate * priv;
+	gint instance_number;
 };
 
 struct _GeanyDBusServerClass {

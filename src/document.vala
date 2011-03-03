@@ -20,9 +20,6 @@
  * 
  */
  
- /* todo: use { owned get {} } in properties */
- 
-using Gtk;
 using Geany;
 
 namespace GeanyDBus

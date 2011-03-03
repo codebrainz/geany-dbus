@@ -28,6 +28,7 @@ struct _GeanyDBusServerPrivate {
 	gint registered_objects_length1;
 	gint _registered_objects_size_;
 	GeeArrayList* registered_documents;
+	gboolean documents_initialized;
 };
 
 
@@ -46,11 +47,12 @@ static void geany_dbus_server_on_bus_name_acquired (GeanyDBusServer* self, GDBus
 static void _geany_dbus_server_on_bus_name_acquired_gbus_name_acquired_callback (GDBusConnection* connection, const char* name, gpointer self);
 static void geany_dbus_server_on_bus_name_lost (GeanyDBusServer* self, GDBusConnection* conn, const char* name);
 static void _geany_dbus_server_on_bus_name_lost_gbus_name_lost_callback (GDBusConnection* connection, const char* name, gpointer self);
+static void geany_dbus_server_initialize_documents (GeanyDBusServer* self);
+void geany_dbus_document_set_dbus_index (GeanyDBusDocument* self, guint value);
+guint geany_dbus_document_get_dbus_index (GeanyDBusDocument* self);
 static void _vala_array_add1 (guint** array, int* length, int* size, guint value);
 static void _vala_array_add2 (guint** array, int* length, int* size, guint value);
 static void _vala_array_add3 (guint** array, int* length, int* size, guint value);
-void geany_dbus_document_set_dbus_index (GeanyDBusDocument* self, guint value);
-guint geany_dbus_document_get_dbus_index (GeanyDBusDocument* self);
 static void geany_dbus_server_finalize (GObject* obj);
 static void geany_dbus_server_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void geany_dbus_server_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
@@ -95,6 +97,8 @@ GeanyDBusServer* geany_dbus_server_construct (GType object_type, GeanyPlugin* pl
 	_g_object_unref0 (_tmp2_);
 	self->priv->registered_objects = (_tmp4_ = (_tmp3_ = g_new0 (guint, 0), _tmp3_), self->priv->registered_objects = (g_free (self->priv->registered_objects), NULL), self->priv->registered_objects_length1 = 0, self->priv->_registered_objects_size_ = self->priv->registered_objects_length1, _tmp4_);
 	self->priv->registered_documents = (_tmp5_ = gee_array_list_new (GEANY_DBUS_TYPE_DOCUMENT, (GBoxedCopyFunc) g_object_ref, g_object_unref, NULL), _g_object_unref0 (self->priv->registered_documents), _tmp5_);
+	self->priv->documents_initialized = FALSE;
+	self->instance_number = 0;
 	self->priv->bus_id = g_bus_own_name_with_closures (G_BUS_TYPE_SESSION, GEANY_DBUS_NAME, G_BUS_NAME_OWNER_FLAGS_NONE, (GClosure*) g_cclosure_new ((GCallback) _geany_dbus_server_on_bus_acquired_gbus_acquired_callback, g_object_ref (self), g_object_unref), (GClosure*) g_cclosure_new ((GCallback) _geany_dbus_server_on_bus_name_acquired_gbus_name_acquired_callback, g_object_ref (self), g_object_unref), (GClosure*) g_cclosure_new ((GCallback) _geany_dbus_server_on_bus_name_lost_gbus_name_lost_callback, g_object_ref (self), g_object_unref));
 	plugin_signal_connect (self->priv->plugin, NULL, "document-new", TRUE, (GCallback) geany_dbus_server_on_document_open_new, self);
 	plugin_signal_connect (self->priv->plugin, NULL, "document-open", TRUE, (GCallback) geany_dbus_server_on_document_open_new, self);
@@ -130,20 +134,116 @@ void geany_dbus_server_close (GeanyDBusServer* self) {
 					break;
 				}
 				if (!g_dbus_connection_unregister_object (self->priv->conn, self->priv->registered_objects[i])) {
-					g_warning ("server.vala:92: Failed to unregister object id %d", (gint) self->priv->registered_objects[i]);
+					g_warning ("server.vala:97: Failed to unregister object id %d", (gint) self->priv->registered_objects[i]);
 				}
 			}
 		}
 	}
 	self->priv->registered_objects = (_tmp2_ = (_tmp1_ = g_new0 (guint, 0), _tmp1_), self->priv->registered_objects = (g_free (self->priv->registered_objects), NULL), self->priv->registered_objects_length1 = 0, self->priv->_registered_objects_size_ = self->priv->registered_objects_length1, _tmp2_);
 	g_bus_unown_name (self->priv->bus_id);
-	g_dbus_connection_close_sync (self->priv->conn, NULL, &_inner_error_);
+	{
+		g_dbus_connection_close_sync (self->priv->conn, NULL, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			goto __catch0_g_error;
+		}
+		ui_set_statusbar (TRUE, "DBus server stopped.");
+	}
+	goto __finally0;
+	__catch0_g_error:
+	{
+		GError * e;
+		e = _inner_error_;
+		_inner_error_ = NULL;
+		{
+			g_debug ("server.vala:107: Error closing DBus connection: %s\n", e->message);
+			_g_error_free0 (e);
+		}
+	}
+	__finally0:
 	if (_inner_error_ != NULL) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
 		return;
 	}
-	ui_set_statusbar (TRUE, "DBus server stopped.");
+}
+
+
+static gint __geany_vala_plugin_document_get_index (struct GeanyDocument* self) {
+	gint result;
+	g_return_val_if_fail (self != NULL, 0);
+	result = self->index;
+	return result;
+}
+
+
+static void geany_dbus_server_initialize_documents (GeanyDBusServer* self) {
+	GError * _inner_error_ = NULL;
+	g_return_if_fail (self != NULL);
+	if (!self->priv->documents_initialized) {
+		{
+			struct GeanyDocument** doc_collection;
+			int doc_collection_length1;
+			int doc_it;
+			doc_collection = documents;
+			doc_collection_length1 = GEANY(documents_array)->len;
+			for (doc_it = 0; doc_it < GEANY(documents_array)->len; doc_it = doc_it + 1) {
+				struct GeanyDocument* doc;
+				doc = doc_collection[doc_it];
+				{
+					{
+						GeanyDBusDocument* dbus_doc;
+						char* obj_path;
+						char* _tmp0_;
+						guint _tmp1_;
+						dbus_doc = geany_dbus_document_new (doc);
+						obj_path = NULL;
+						obj_path = (_tmp0_ = g_strdup_printf ("/org/geany/DBus/Documents/%d", __geany_vala_plugin_document_get_index (doc)), _g_free0 (obj_path), _tmp0_);
+						_tmp1_ = geany_dbus_document_register_object (dbus_doc, self->priv->conn, obj_path, &_inner_error_);
+						if (_inner_error_ != NULL) {
+							_g_free0 (obj_path);
+							_g_object_unref0 (dbus_doc);
+							if (_inner_error_->domain == G_IO_ERROR) {
+								goto __catch1_g_io_error;
+							}
+							_g_free0 (obj_path);
+							_g_object_unref0 (dbus_doc);
+							g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+							g_clear_error (&_inner_error_);
+							return;
+						}
+						geany_dbus_document_set_dbus_index (dbus_doc, _tmp1_);
+						if (geany_dbus_document_get_dbus_index (dbus_doc) > 0) {
+							gee_abstract_collection_add ((GeeAbstractCollection*) self->priv->registered_documents, dbus_doc);
+							g_debug ("server.vala:127: Registered document: %s", geany_dbus_document_get_file_name (dbus_doc));
+						} else {
+							g_warning ("server.vala:130: Failed to register document: %s", geany_dbus_document_get_file_name (dbus_doc));
+						}
+						_g_free0 (obj_path);
+						_g_object_unref0 (dbus_doc);
+					}
+					goto __finally1;
+					__catch1_g_io_error:
+					{
+						GError * e;
+						e = _inner_error_;
+						_inner_error_ = NULL;
+						{
+							g_warning ("server.vala:135: Error registering object with DBus: %s", e->message);
+							_g_error_free0 (e);
+						}
+					}
+					__finally1:
+					if (_inner_error_ != NULL) {
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
+				}
+			}
+		}
+		self->priv->documents_initialized = TRUE;
+		g_debug ("server.vala:139: Documents initialized");
+	}
 }
 
 
@@ -186,7 +286,7 @@ static void geany_dbus_server_on_bus_acquired (GeanyDBusServer* self, GDBusConne
 		_tmp0_ = geany_dbus_application_register_object (self->priv->_application, conn, "/org/geany/DBus/Application", &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if (_inner_error_->domain == G_IO_ERROR) {
-				goto __catch0_g_io_error;
+				goto __catch2_g_io_error;
 			}
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
@@ -196,7 +296,7 @@ static void geany_dbus_server_on_bus_acquired (GeanyDBusServer* self, GDBusConne
 		_tmp1_ = geany_dbus_project_register_object (self->priv->_project, conn, "/org/geany/DBus/Project", &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if (_inner_error_->domain == G_IO_ERROR) {
-				goto __catch0_g_io_error;
+				goto __catch2_g_io_error;
 			}
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
@@ -206,26 +306,29 @@ static void geany_dbus_server_on_bus_acquired (GeanyDBusServer* self, GDBusConne
 		_tmp2_ = geany_dbus_interface_preferences_register_object (self->priv->_interface_prefs, conn, "/org/geany/DBus/UI/Preferences", &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if (_inner_error_->domain == G_IO_ERROR) {
-				goto __catch0_g_io_error;
+				goto __catch2_g_io_error;
 			}
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
 			return;
 		}
 		_vala_array_add3 (&self->priv->registered_objects, &self->priv->registered_objects_length1, &self->priv->_registered_objects_size_, _tmp2_);
+		if (!self->priv->documents_initialized) {
+			geany_dbus_server_initialize_documents (self);
+		}
 	}
-	goto __finally0;
-	__catch0_g_io_error:
+	goto __finally2;
+	__catch2_g_io_error:
 	{
 		GError * e;
 		e = _inner_error_;
 		_inner_error_ = NULL;
 		{
-			g_warning ("server.vala:118: Could not register services: %s", e->message);
+			g_warning ("server.vala:164: Could not register services: %s", e->message);
 			_g_error_free0 (e);
 		}
 	}
-	__finally0:
+	__finally2:
 	if (_inner_error_ != NULL) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -243,74 +346,79 @@ static void geany_dbus_server_on_bus_name_acquired (GeanyDBusServer* self, GDBus
 
 
 static void geany_dbus_server_on_bus_name_lost (GeanyDBusServer* self, GDBusConnection* conn, const char* name) {
+	char* new_bus_name;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (conn != NULL);
 	g_return_if_fail (name != NULL);
-	ui_set_statusbar (TRUE, "DBus server started with bus name '%s'.", g_dbus_connection_get_unique_name (conn));
-}
-
-
-static gint __geany_vala_plugin_document_get_index (struct GeanyDocument* self) {
-	gint result;
-	g_return_val_if_fail (self != NULL, 0);
-	result = self->index;
-	return result;
+	if (self->instance_number > 255) {
+		ui_set_statusbar (TRUE, "DBus server started, but could not " "own bus name, so using unique name: %s", g_dbus_connection_get_unique_name (conn));
+		return;
+	}
+	self->instance_number++;
+	new_bus_name = g_strdup_printf ("%s.Instance%d", GEANY_DBUS_NAME, self->instance_number);
+	g_debug ("server.vala:190: Attempting name %s", new_bus_name);
+	self->priv->bus_id = g_bus_own_name_with_closures (G_BUS_TYPE_SESSION, new_bus_name, G_BUS_NAME_OWNER_FLAGS_NONE, (GClosure*) g_cclosure_new ((GCallback) _geany_dbus_server_on_bus_acquired_gbus_acquired_callback, g_object_ref (self), g_object_unref), (GClosure*) g_cclosure_new ((GCallback) _geany_dbus_server_on_bus_name_acquired_gbus_name_acquired_callback, g_object_ref (self), g_object_unref), (GClosure*) g_cclosure_new ((GCallback) _geany_dbus_server_on_bus_name_lost_gbus_name_lost_callback, g_object_ref (self), g_object_unref));
+	_g_free0 (new_bus_name);
 }
 
 
 void geany_dbus_server_on_document_open_new (GObject* object, struct GeanyDocument* doc, GeanyDBusServer* self) {
-	GeanyDBusDocument* dbus_doc;
 	GError * _inner_error_ = NULL;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (object != NULL);
 	g_return_if_fail (doc != NULL);
-	dbus_doc = geany_dbus_document_new (doc);
-	{
-		char* obj_path;
-		char* _tmp0_;
-		guint _tmp1_;
-		obj_path = NULL;
-		obj_path = (_tmp0_ = g_strdup_printf ("/org/geany/DBus/Documents/%d", __geany_vala_plugin_document_get_index (doc)), _g_free0 (obj_path), _tmp0_);
-		_tmp1_ = geany_dbus_document_register_object (dbus_doc, self->priv->conn, obj_path, &_inner_error_);
-		if (_inner_error_ != NULL) {
-			_g_free0 (obj_path);
-			if (_inner_error_->domain == G_IO_ERROR) {
-				goto __catch1_g_io_error;
+	if (self->priv->documents_initialized) {
+		GeanyDBusDocument* dbus_doc;
+		dbus_doc = geany_dbus_document_new (doc);
+		{
+			char* obj_path;
+			char* _tmp0_;
+			guint _tmp1_;
+			obj_path = NULL;
+			obj_path = (_tmp0_ = g_strdup_printf ("/org/geany/DBus/Documents/%d", __geany_vala_plugin_document_get_index (doc)), _g_free0 (obj_path), _tmp0_);
+			_tmp1_ = geany_dbus_document_register_object (dbus_doc, self->priv->conn, obj_path, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				_g_free0 (obj_path);
+				if (_inner_error_->domain == G_IO_ERROR) {
+					goto __catch3_g_io_error;
+				}
+				_g_free0 (obj_path);
+				_g_object_unref0 (dbus_doc);
+				g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+			geany_dbus_document_set_dbus_index (dbus_doc, _tmp1_);
+			if (geany_dbus_document_get_dbus_index (dbus_doc) > 0) {
+				gee_abstract_collection_add ((GeeAbstractCollection*) self->priv->registered_documents, dbus_doc);
+				g_debug ("server.vala:214: Registered document: %s", geany_dbus_document_get_file_name (dbus_doc));
+			} else {
+				g_warning ("server.vala:217: Failed to register document: %s", geany_dbus_document_get_file_name (dbus_doc));
 			}
 			_g_free0 (obj_path);
+		}
+		goto __finally3;
+		__catch3_g_io_error:
+		{
+			GError * e;
+			e = _inner_error_;
+			_inner_error_ = NULL;
+			{
+				g_warning ("server.vala:222: Error registering object with DBus: %s", e->message);
+				_g_error_free0 (e);
+			}
+		}
+		__finally3:
+		if (_inner_error_ != NULL) {
 			_g_object_unref0 (dbus_doc);
-			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
 			return;
 		}
-		geany_dbus_document_set_dbus_index (dbus_doc, _tmp1_);
-		if (geany_dbus_document_get_dbus_index (dbus_doc) > 0) {
-			gee_abstract_collection_add ((GeeAbstractCollection*) self->priv->registered_documents, dbus_doc);
-			g_debug ("server.vala:150: Registered document\n");
-		} else {
-			g_warning ("server.vala:153: Failed to register document index %d", geany_dbus_document_get_index (dbus_doc));
-		}
-		_g_free0 (obj_path);
-	}
-	goto __finally1;
-	__catch1_g_io_error:
-	{
-		GError * e;
-		e = _inner_error_;
-		_inner_error_ = NULL;
-		{
-			g_warning ("server.vala:158: Error registering object with DBus: %s", e->message);
-			_g_error_free0 (e);
-		}
-	}
-	__finally1:
-	if (_inner_error_ != NULL) {
 		_g_object_unref0 (dbus_doc);
-		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-		g_clear_error (&_inner_error_);
-		return;
+	} else {
+		g_debug ("server.vala:226: Document initialization pending");
 	}
-	_g_object_unref0 (dbus_doc);
 }
 
 
@@ -340,9 +448,9 @@ void geany_dbus_server_on_document_close (GObject* object, struct GeanyDocument*
 						GeanyDBusDocument* _tmp1_;
 						_tmp1_ = (GeanyDBusDocument*) gee_abstract_list_remove_at ((GeeAbstractList*) self->priv->registered_documents, i);
 						_g_object_unref0 (_tmp1_);
-						g_debug ("server.vala:173: Unregistered document\n");
+						g_debug ("server.vala:241: Unregistered document\n");
 					} else {
-						g_warning ("server.vala:176: Error unregistering doc id %d", geany_dbus_document_get_index (dbus_doc));
+						g_warning ("server.vala:244: Error unregistering doc id %d", geany_dbus_document_get_index (dbus_doc));
 					}
 				}
 				_g_object_unref0 (dbus_doc);
