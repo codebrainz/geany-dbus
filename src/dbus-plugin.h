@@ -34,15 +34,15 @@ typedef struct _GeanyDBusServerPrivate GeanyDBusServerPrivate;
 typedef struct _GeanyDBusApplication GeanyDBusApplication;
 typedef struct _GeanyDBusApplicationClass GeanyDBusApplicationClass;
 
-#define GEANY_DBUS_TYPE_INTERFACE_PREFS (geany_dbus_interface_prefs_get_type ())
-#define GEANY_DBUS_INTERFACE_PREFS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEANY_DBUS_TYPE_INTERFACE_PREFS, GeanyDBusInterfacePrefs))
-#define GEANY_DBUS_INTERFACE_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GEANY_DBUS_TYPE_INTERFACE_PREFS, GeanyDBusInterfacePrefsClass))
-#define GEANY_DBUS_IS_INTERFACE_PREFS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEANY_DBUS_TYPE_INTERFACE_PREFS))
-#define GEANY_DBUS_IS_INTERFACE_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GEANY_DBUS_TYPE_INTERFACE_PREFS))
-#define GEANY_DBUS_INTERFACE_PREFS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GEANY_DBUS_TYPE_INTERFACE_PREFS, GeanyDBusInterfacePrefsClass))
+#define GEANY_DBUS_TYPE_INTERFACE_PREFERENCES (geany_dbus_interface_preferences_get_type ())
+#define GEANY_DBUS_INTERFACE_PREFERENCES(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEANY_DBUS_TYPE_INTERFACE_PREFERENCES, GeanyDBusInterfacePreferences))
+#define GEANY_DBUS_INTERFACE_PREFERENCES_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GEANY_DBUS_TYPE_INTERFACE_PREFERENCES, GeanyDBusInterfacePreferencesClass))
+#define GEANY_DBUS_IS_INTERFACE_PREFERENCES(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEANY_DBUS_TYPE_INTERFACE_PREFERENCES))
+#define GEANY_DBUS_IS_INTERFACE_PREFERENCES_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GEANY_DBUS_TYPE_INTERFACE_PREFERENCES))
+#define GEANY_DBUS_INTERFACE_PREFERENCES_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GEANY_DBUS_TYPE_INTERFACE_PREFERENCES, GeanyDBusInterfacePreferencesClass))
 
-typedef struct _GeanyDBusInterfacePrefs GeanyDBusInterfacePrefs;
-typedef struct _GeanyDBusInterfacePrefsClass GeanyDBusInterfacePrefsClass;
+typedef struct _GeanyDBusInterfacePreferences GeanyDBusInterfacePreferences;
+typedef struct _GeanyDBusInterfacePreferencesClass GeanyDBusInterfacePreferencesClass;
 
 #define GEANY_DBUS_TYPE_PROJECT (geany_dbus_project_get_type ())
 #define GEANY_DBUS_PROJECT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEANY_DBUS_TYPE_PROJECT, GeanyDBusProject))
@@ -65,7 +65,7 @@ typedef struct _GeanyDBusApplicationPrivate GeanyDBusApplicationPrivate;
 typedef struct _GeanyDBusDocument GeanyDBusDocument;
 typedef struct _GeanyDBusDocumentClass GeanyDBusDocumentClass;
 typedef struct _GeanyDBusDocumentPrivate GeanyDBusDocumentPrivate;
-typedef struct _GeanyDBusInterfacePrefsPrivate GeanyDBusInterfacePrefsPrivate;
+typedef struct _GeanyDBusInterfacePreferencesPrivate GeanyDBusInterfacePreferencesPrivate;
 
 #define GEANY_DBUS_TYPE_INDENT_PREFS (geany_dbus_indent_prefs_get_type ())
 #define GEANY_DBUS_INDENT_PREFS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEANY_DBUS_TYPE_INDENT_PREFS, GeanyDBusIndentPrefs))
@@ -107,12 +107,12 @@ struct _GeanyDBusDocumentClass {
 	GObjectClass parent_class;
 };
 
-struct _GeanyDBusInterfacePrefs {
+struct _GeanyDBusInterfacePreferences {
 	GObject parent_instance;
-	GeanyDBusInterfacePrefsPrivate * priv;
+	GeanyDBusInterfacePreferencesPrivate * priv;
 };
 
-struct _GeanyDBusInterfacePrefsClass {
+struct _GeanyDBusInterfacePreferencesClass {
 	GObjectClass parent_class;
 };
 
@@ -155,16 +155,20 @@ GType geany_dbus_application_get_type (void) G_GNUC_CONST;
 guint geany_dbus_application_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
 GeanyDBusApplication* geany_dbus_server_get_application (GeanyDBusServer* self);
 void geany_dbus_server_set_application (GeanyDBusServer* self, GeanyDBusApplication* value);
-GType geany_dbus_interface_prefs_get_type (void) G_GNUC_CONST;
-guint geany_dbus_interface_prefs_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
-GeanyDBusInterfacePrefs* geany_dbus_server_get_interface_prefs (GeanyDBusServer* self);
-void geany_dbus_server_set_interface_prefs (GeanyDBusServer* self, GeanyDBusInterfacePrefs* value);
+GType geany_dbus_interface_preferences_get_type (void) G_GNUC_CONST;
+guint geany_dbus_interface_preferences_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
+GeanyDBusInterfacePreferences* geany_dbus_server_get_interface_prefs (GeanyDBusServer* self);
+void geany_dbus_server_set_interface_prefs (GeanyDBusServer* self, GeanyDBusInterfacePreferences* value);
 GType geany_dbus_project_get_type (void) G_GNUC_CONST;
 guint geany_dbus_project_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
 GeanyDBusProject* geany_dbus_server_get_project (GeanyDBusServer* self);
 void geany_dbus_server_set_project (GeanyDBusServer* self, GeanyDBusProject* value);
 GeanyDBusApplication* geany_dbus_application_new (GeanyApp* app);
 GeanyDBusApplication* geany_dbus_application_construct (GType object_type, GeanyApp* app);
+gboolean geany_dbus_application_new_document (GeanyDBusApplication* self);
+gboolean geany_dbus_application_open_document (GeanyDBusApplication* self, const char* filename);
+void geany_dbus_application_open_documents (GeanyDBusApplication* self, char** filenames, int filenames_length1);
+gboolean geany_dbus_application_close_notebook_page (GeanyDBusApplication* self, guint page_number);
 gboolean geany_dbus_application_get_debug_mode (GeanyDBusApplication* self);
 void geany_dbus_application_set_debug_mode (GeanyDBusApplication* self, gboolean value);
 const char* geany_dbus_application_get_config_dir (GeanyDBusApplication* self);
@@ -173,13 +177,19 @@ const char* geany_dbus_application_get_data_dir (GeanyDBusApplication* self);
 void geany_dbus_application_set_data_dir (GeanyDBusApplication* self, const char* value);
 const char* geany_dbus_application_get_doc_dir (GeanyDBusApplication* self);
 void geany_dbus_application_set_doc_dir (GeanyDBusApplication* self, const char* value);
+char* geany_dbus_application_get_current_document (GeanyDBusApplication* self);
 void geany_dbus_application_build_starting (GeanyDBusApplication* self);
 GType geany_dbus_document_get_type (void) G_GNUC_CONST;
 guint geany_dbus_document_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
 GeanyDBusDocument* geany_dbus_document_new (struct GeanyDocument* doc);
 GeanyDBusDocument* geany_dbus_document_construct (GType object_type, struct GeanyDocument* doc);
-gboolean geany_dbus_document_get_needs_saving (GeanyDBusDocument* self);
-void geany_dbus_document_set_needs_saving (GeanyDBusDocument* self, gboolean value);
+char* geany_dbus_document_get_display_name (GeanyDBusDocument* self);
+gboolean geany_dbus_document_reload (GeanyDBusDocument* self);
+gboolean geany_dbus_document_save (GeanyDBusDocument* self);
+gboolean geany_dbus_document_save_as (GeanyDBusDocument* self, const char* new_filename);
+gboolean geany_dbus_document_close (GeanyDBusDocument* self);
+gboolean geany_dbus_document_get_has_changed (GeanyDBusDocument* self);
+void geany_dbus_document_set_has_changed (GeanyDBusDocument* self, gboolean value);
 const char* geany_dbus_document_get_encoding (GeanyDBusDocument* self);
 void geany_dbus_document_set_encoding (GeanyDBusDocument* self, const char* value);
 const char* geany_dbus_document_get_file_name (GeanyDBusDocument* self);
@@ -189,47 +199,47 @@ gboolean geany_dbus_document_get_has_tags (GeanyDBusDocument* self);
 gint geany_dbus_document_get_index (GeanyDBusDocument* self);
 gboolean geany_dbus_document_get_is_valid (GeanyDBusDocument* self);
 gboolean geany_dbus_document_get_is_read_only (GeanyDBusDocument* self);
-void geany_dbus_document_set_is_read_only (GeanyDBusDocument* self, gboolean value);
 const char* geany_dbus_document_get_real_path (GeanyDBusDocument* self);
 gint geany_dbus_document_get_notebook_page (GeanyDBusDocument* self);
-GeanyDBusInterfacePrefs* geany_dbus_interface_prefs_new (GeanyInterfacePrefs* prefs);
-GeanyDBusInterfacePrefs* geany_dbus_interface_prefs_construct (GType object_type, GeanyInterfacePrefs* prefs);
-gboolean geany_dbus_interface_prefs_get_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self, gboolean val);
-gboolean geany_dbus_interface_prefs_get_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self, gboolean val);
-const char* geany_dbus_interface_prefs_get_editor_font (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_editor_font (GeanyDBusInterfacePrefs* self, const char* val);
-const char* geany_dbus_interface_prefs_get_tagbar_font (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_tagbar_font (GeanyDBusInterfacePrefs* self, const char* val);
-const char* geany_dbus_interface_prefs_get_msgwin_font (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_msgwin_font (GeanyDBusInterfacePrefs* self, const char* val);
-gboolean geany_dbus_interface_prefs_get_show_notebook_tabs (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_show_notebook_tabs (GeanyDBusInterfacePrefs* self, gboolean val);
-gint geany_dbus_interface_prefs_get_tab_pos_editor (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_tab_pos_editor (GeanyDBusInterfacePrefs* self, gint val);
-gint geany_dbus_interface_prefs_get_tab_pos_msgwin (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_tab_pos_msgwin (GeanyDBusInterfacePrefs* self, gint val);
-gint geany_dbus_interface_prefs_get_tab_pos_sidebar (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_tab_pos_sidebar (GeanyDBusInterfacePrefs* self, gint val);
-gboolean geany_dbus_interface_prefs_get_statusbar_visible (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_statusbar_visible (GeanyDBusInterfacePrefs* self, gboolean val);
-gboolean geany_dbus_interface_prefs_get_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self, gboolean val);
-gboolean geany_dbus_interface_prefs_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self, gboolean val);
-gboolean geany_dbus_interface_prefs_get_highlighting_invert_all (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_highlighting_invert_all (GeanyDBusInterfacePrefs* self, gboolean val);
-gint geany_dbus_interface_prefs_get_sidebar_pos (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_sidebar_pos (GeanyDBusInterfacePrefs* self, gint val);
-gboolean geany_dbus_interface_prefs_get_msgwin_status_visible (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_msgwin_status_visible (GeanyDBusInterfacePrefs* self, gboolean val);
-gboolean geany_dbus_interface_prefs_get_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self, gboolean val);
-gboolean geany_dbus_interface_prefs_get_msgwin_messages_visible (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, gboolean val);
-gboolean geany_dbus_interface_prefs_get_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self);
-void geany_dbus_interface_prefs_set_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, gboolean val);
+char* geany_dbus_document_get_status_color (GeanyDBusDocument* self);
+GeanyDBusInterfacePreferences* geany_dbus_interface_preferences_new (GeanyInterfacePrefs* prefs);
+GeanyDBusInterfacePreferences* geany_dbus_interface_preferences_construct (GType object_type, GeanyInterfacePrefs* prefs);
+gboolean geany_dbus_interface_preferences_get_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self, gboolean value);
+gboolean geany_dbus_interface_preferences_get_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self, gboolean value);
+const char* geany_dbus_interface_preferences_get_editor_font (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_editor_font (GeanyDBusInterfacePreferences* self, const char* value);
+const char* geany_dbus_interface_preferences_get_tagbar_font (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_tagbar_font (GeanyDBusInterfacePreferences* self, const char* value);
+const char* geany_dbus_interface_preferences_get_msgwin_font (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_msgwin_font (GeanyDBusInterfacePreferences* self, const char* value);
+gboolean geany_dbus_interface_preferences_get_show_notebook_tabs (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_show_notebook_tabs (GeanyDBusInterfacePreferences* self, gboolean value);
+gint geany_dbus_interface_preferences_get_tab_pos_editor (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_tab_pos_editor (GeanyDBusInterfacePreferences* self, gint value);
+gint geany_dbus_interface_preferences_get_tab_pos_msgwin (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_tab_pos_msgwin (GeanyDBusInterfacePreferences* self, gint value);
+gint geany_dbus_interface_preferences_get_tab_pos_sidebar (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_tab_pos_sidebar (GeanyDBusInterfacePreferences* self, gint value);
+gboolean geany_dbus_interface_preferences_get_statusbar_visible (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_statusbar_visible (GeanyDBusInterfacePreferences* self, gboolean value);
+gboolean geany_dbus_interface_preferences_get_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self, gboolean value);
+gboolean geany_dbus_interface_preferences_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self, gboolean value);
+gboolean geany_dbus_interface_preferences_get_highlighting_invert_all (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_highlighting_invert_all (GeanyDBusInterfacePreferences* self, gboolean value);
+gint geany_dbus_interface_preferences_get_sidebar_pos (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_sidebar_pos (GeanyDBusInterfacePreferences* self, gint value);
+gboolean geany_dbus_interface_preferences_get_msgwin_status_visible (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_msgwin_status_visible (GeanyDBusInterfacePreferences* self, gboolean value);
+gboolean geany_dbus_interface_preferences_get_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self, gboolean value);
+gboolean geany_dbus_interface_preferences_get_msgwin_messages_visible (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_msgwin_messages_visible (GeanyDBusInterfacePreferences* self, gboolean value);
+gboolean geany_dbus_interface_preferences_get_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self);
+void geany_dbus_interface_preferences_set_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self, gboolean value);
 GType geany_dbus_indent_prefs_get_type (void) G_GNUC_CONST;
 guint geany_dbus_indent_prefs_register_object (void* object, GDBusConnection* connection, const gchar* path, GError** error);
 GeanyDBusIndentPrefs* geany_dbus_indent_prefs_new (GeanyIndentPrefs* prefs);
@@ -247,15 +257,15 @@ void geany_dbus_indent_prefs_set_detect_type (GeanyDBusIndentPrefs* self, gboole
 GeanyDBusProject* geany_dbus_project_new (GeanyProject* proj);
 GeanyDBusProject* geany_dbus_project_construct (GType object_type, GeanyProject* proj);
 const char* geany_dbus_project_get_name (GeanyDBusProject* self);
-void geany_dbus_project_set_name (GeanyDBusProject* self, const char* val);
+void geany_dbus_project_set_name (GeanyDBusProject* self, const char* value);
 const char* geany_dbus_project_get_description (GeanyDBusProject* self);
-void geany_dbus_project_set_description (GeanyDBusProject* self, const char* val);
+void geany_dbus_project_set_description (GeanyDBusProject* self, const char* value);
 const char* geany_dbus_project_get_file_name (GeanyDBusProject* self);
-void geany_dbus_project_set_file_name (GeanyDBusProject* self, const char* val);
+void geany_dbus_project_set_file_name (GeanyDBusProject* self, const char* value);
 const char* geany_dbus_project_get_base_path (GeanyDBusProject* self);
-void geany_dbus_project_set_base_path (GeanyDBusProject* self, const char* val);
+void geany_dbus_project_set_base_path (GeanyDBusProject* self, const char* value);
 gint geany_dbus_project_get_project_type (GeanyDBusProject* self);
-void geany_dbus_project_set_project_type (GeanyDBusProject* self, gint val);
+void geany_dbus_project_set_project_type (GeanyDBusProject* self, gint value);
 
 
 G_END_DECLS

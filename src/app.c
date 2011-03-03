@@ -27,8 +27,11 @@
 #include <glib-object.h>
 #include "dbus-plugin.h"
 #include <geanyplugin.h>
+#include <stdlib.h>
+#include <string.h>
 #include <gio/gio.h>
 
+#define __g_slist_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_slist_free_g_free (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 
 struct _GeanyDBusApplicationPrivate {
@@ -44,19 +47,26 @@ enum  {
 	GEANY_DBUS_APPLICATION_DEBUG_MODE,
 	GEANY_DBUS_APPLICATION_CONFIG_DIR,
 	GEANY_DBUS_APPLICATION_DATA_DIR,
-	GEANY_DBUS_APPLICATION_DOC_DIR
+	GEANY_DBUS_APPLICATION_DOC_DIR,
+	GEANY_DBUS_APPLICATION_CURRENT_DOCUMENT
 };
 static void geany_dbus_application_on_build_start (GeanyDBusApplication* self, GObject* obj);
+static void _g_slist_free_g_free (GSList* self);
 static void geany_dbus_application_real_build_starting (GeanyDBusApplication* self);
 static void geany_dbus_application_finalize (GObject* obj);
 static void geany_dbus_application_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void geany_dbus_application_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
 static void geany_dbus_application_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data);
+static void _dbus_geany_dbus_application_new_document (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation);
+static void _dbus_geany_dbus_application_open_document (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation);
+static void _dbus_geany_dbus_application_open_documents (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation);
+static void _dbus_geany_dbus_application_close_notebook_page (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation);
 static GVariant* geany_dbus_application_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data);
 static GVariant* _dbus_geany_dbus_application_get_debug_mode (GeanyDBusApplication* self);
 static GVariant* _dbus_geany_dbus_application_get_config_dir (GeanyDBusApplication* self);
 static GVariant* _dbus_geany_dbus_application_get_data_dir (GeanyDBusApplication* self);
 static GVariant* _dbus_geany_dbus_application_get_doc_dir (GeanyDBusApplication* self);
+static GVariant* _dbus_geany_dbus_application_get_current_document (GeanyDBusApplication* self);
 static gboolean geany_dbus_application_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data);
 static void _dbus_geany_dbus_application_set_debug_mode (GeanyDBusApplication* self, GVariant* _value);
 static void _dbus_geany_dbus_application_set_config_dir (GeanyDBusApplication* self, GVariant* _value);
@@ -64,8 +74,28 @@ static void _dbus_geany_dbus_application_set_data_dir (GeanyDBusApplication* sel
 static void _dbus_geany_dbus_application_set_doc_dir (GeanyDBusApplication* self, GVariant* _value);
 static void _dbus_geany_dbus_application_build_starting (GObject* _sender, gpointer* _data);
 static void _geany_dbus_application_unregister_object (gpointer user_data);
+static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
+static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
-static const GDBusMethodInfo * const _geany_dbus_application_dbus_method_info[] = {NULL};
+static const GDBusArgInfo _geany_dbus_application_dbus_arg_info_new_document_result = {-1, "result", "b"};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_new_document_in[] = {NULL};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_new_document_out[] = {&_geany_dbus_application_dbus_arg_info_new_document_result, NULL};
+static const GDBusMethodInfo _geany_dbus_application_dbus_method_info_new_document = {-1, "NewDocument", (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_new_document_in), (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_new_document_out)};
+static const GDBusArgInfo _geany_dbus_application_dbus_arg_info_open_document_filename = {-1, "filename", "s"};
+static const GDBusArgInfo _geany_dbus_application_dbus_arg_info_open_document_result = {-1, "result", "b"};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_open_document_in[] = {&_geany_dbus_application_dbus_arg_info_open_document_filename, NULL};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_open_document_out[] = {&_geany_dbus_application_dbus_arg_info_open_document_result, NULL};
+static const GDBusMethodInfo _geany_dbus_application_dbus_method_info_open_document = {-1, "OpenDocument", (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_open_document_in), (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_open_document_out)};
+static const GDBusArgInfo _geany_dbus_application_dbus_arg_info_open_documents_filenames = {-1, "filenames", "as"};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_open_documents_in[] = {&_geany_dbus_application_dbus_arg_info_open_documents_filenames, NULL};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_open_documents_out[] = {NULL};
+static const GDBusMethodInfo _geany_dbus_application_dbus_method_info_open_documents = {-1, "OpenDocuments", (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_open_documents_in), (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_open_documents_out)};
+static const GDBusArgInfo _geany_dbus_application_dbus_arg_info_close_notebook_page_page_number = {-1, "page_number", "u"};
+static const GDBusArgInfo _geany_dbus_application_dbus_arg_info_close_notebook_page_result = {-1, "result", "b"};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_close_notebook_page_in[] = {&_geany_dbus_application_dbus_arg_info_close_notebook_page_page_number, NULL};
+static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_close_notebook_page_out[] = {&_geany_dbus_application_dbus_arg_info_close_notebook_page_result, NULL};
+static const GDBusMethodInfo _geany_dbus_application_dbus_method_info_close_notebook_page = {-1, "CloseNotebookPage", (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_close_notebook_page_in), (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_close_notebook_page_out)};
+static const GDBusMethodInfo * const _geany_dbus_application_dbus_method_info[] = {&_geany_dbus_application_dbus_method_info_new_document, &_geany_dbus_application_dbus_method_info_open_document, &_geany_dbus_application_dbus_method_info_open_documents, &_geany_dbus_application_dbus_method_info_close_notebook_page, NULL};
 static const GDBusArgInfo * const _geany_dbus_application_dbus_arg_info_build_starting[] = {NULL};
 static const GDBusSignalInfo _geany_dbus_application_dbus_signal_info_build_starting = {-1, "BuildStarting", (GDBusArgInfo **) (&_geany_dbus_application_dbus_arg_info_build_starting)};
 static const GDBusSignalInfo * const _geany_dbus_application_dbus_signal_info[] = {&_geany_dbus_application_dbus_signal_info_build_starting, NULL};
@@ -73,7 +103,8 @@ static const GDBusPropertyInfo _geany_dbus_application_dbus_property_info_debug_
 static const GDBusPropertyInfo _geany_dbus_application_dbus_property_info_config_dir = {-1, "ConfigDir", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
 static const GDBusPropertyInfo _geany_dbus_application_dbus_property_info_data_dir = {-1, "DataDir", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
 static const GDBusPropertyInfo _geany_dbus_application_dbus_property_info_doc_dir = {-1, "DocDir", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
-static const GDBusPropertyInfo * const _geany_dbus_application_dbus_property_info[] = {&_geany_dbus_application_dbus_property_info_debug_mode, &_geany_dbus_application_dbus_property_info_config_dir, &_geany_dbus_application_dbus_property_info_data_dir, &_geany_dbus_application_dbus_property_info_doc_dir, NULL};
+static const GDBusPropertyInfo _geany_dbus_application_dbus_property_info_current_document = {-1, "CurrentDocument", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
+static const GDBusPropertyInfo * const _geany_dbus_application_dbus_property_info[] = {&_geany_dbus_application_dbus_property_info_debug_mode, &_geany_dbus_application_dbus_property_info_config_dir, &_geany_dbus_application_dbus_property_info_data_dir, &_geany_dbus_application_dbus_property_info_doc_dir, &_geany_dbus_application_dbus_property_info_current_document, NULL};
 static const GDBusInterfaceInfo _geany_dbus_application_dbus_interface_info = {-1, "org.geany.DBus.Interfaces.Application", (GDBusMethodInfo **) (&_geany_dbus_application_dbus_method_info), (GDBusSignalInfo **) (&_geany_dbus_application_dbus_signal_info), (GDBusPropertyInfo **) (&_geany_dbus_application_dbus_property_info)};
 static const GDBusInterfaceVTable _geany_dbus_application_dbus_interface_vtable = {geany_dbus_application_dbus_interface_method_call, geany_dbus_application_dbus_interface_get_property, geany_dbus_application_dbus_interface_set_property};
 
@@ -90,6 +121,76 @@ GeanyDBusApplication* geany_dbus_application_construct (GType object_type, Geany
 
 GeanyDBusApplication* geany_dbus_application_new (GeanyApp* app) {
 	return geany_dbus_application_construct (GEANY_DBUS_TYPE_APPLICATION, app);
+}
+
+
+gboolean geany_dbus_application_new_document (GeanyDBusApplication* self) {
+	gboolean result = FALSE;
+	gboolean _tmp0_ = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	if (document_new_file (NULL, NULL, NULL) != NULL) {
+		_tmp0_ = TRUE;
+	} else {
+		_tmp0_ = FALSE;
+	}
+	result = _tmp0_;
+	return result;
+}
+
+
+gboolean geany_dbus_application_open_document (GeanyDBusApplication* self, const char* filename) {
+	gboolean result = FALSE;
+	gboolean _tmp0_ = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (filename != NULL, FALSE);
+	if (document_open_file (filename, FALSE, NULL, NULL) != NULL) {
+		_tmp0_ = TRUE;
+	} else {
+		_tmp0_ = FALSE;
+	}
+	result = _tmp0_;
+	return result;
+}
+
+
+static void _g_slist_free_g_free (GSList* self) {
+	g_slist_foreach (self, (GFunc) g_free, NULL);
+	g_slist_free (self);
+}
+
+
+void geany_dbus_application_open_documents (GeanyDBusApplication* self, char** filenames, int filenames_length1) {
+	GSList* fnames;
+	g_return_if_fail (self != NULL);
+	fnames = NULL;
+	{
+		gint i;
+		i = 0;
+		{
+			gboolean _tmp0_;
+			_tmp0_ = TRUE;
+			while (TRUE) {
+				if (!_tmp0_) {
+					i++;
+				}
+				_tmp0_ = FALSE;
+				if (!(i < filenames_length1)) {
+					break;
+				}
+				fnames = g_slist_append (fnames, g_strdup (filenames[i]));
+			}
+		}
+	}
+	document_open_files (fnames, FALSE, NULL, NULL);
+	__g_slist_free_g_free0 (fnames);
+}
+
+
+gboolean geany_dbus_application_close_notebook_page (GeanyDBusApplication* self, guint page_number) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = document_remove_page (page_number);
+	return result;
 }
 
 
@@ -163,6 +264,24 @@ void geany_dbus_application_set_doc_dir (GeanyDBusApplication* self, const char*
 }
 
 
+static gint __geany_vala_plugin_document_get_index (struct GeanyDocument* self) {
+	gint result;
+	g_return_val_if_fail (self != NULL, 0);
+	result = self->index;
+	return result;
+}
+
+
+char* geany_dbus_application_get_current_document (GeanyDBusApplication* self) {
+	char* result;
+	gint current_id;
+	g_return_val_if_fail (self != NULL, NULL);
+	current_id = __geany_vala_plugin_document_get_index (document_get_current ());
+	result = g_strdup_printf ("/org/geany/DBus/Documents/%d", current_id);
+	return result;
+}
+
+
 static void geany_dbus_application_real_build_starting (GeanyDBusApplication* self) {
 	g_return_if_fail (self != NULL);
 	g_debug ("app.vala:47: Emitted BuildStarting signal");
@@ -180,6 +299,7 @@ static void geany_dbus_application_class_init (GeanyDBusApplicationClass * klass
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_APPLICATION_CONFIG_DIR, g_param_spec_string ("config-dir", "config-dir", "config-dir", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_APPLICATION_DATA_DIR, g_param_spec_string ("data-dir", "data-dir", "data-dir", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_APPLICATION_DOC_DIR, g_param_spec_string ("doc-dir", "doc-dir", "doc-dir", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_APPLICATION_CURRENT_DOCUMENT, g_param_spec_string ("current-document", "current-document", "current-document", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_signal_new ("build_starting", GEANY_DBUS_TYPE_APPLICATION, G_SIGNAL_RUN_LAST, G_STRUCT_OFFSET (GeanyDBusApplicationClass, build_starting), NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 }
 
@@ -224,6 +344,9 @@ static void geany_dbus_application_get_property (GObject * object, guint propert
 		case GEANY_DBUS_APPLICATION_DOC_DIR:
 		g_value_set_string (value, geany_dbus_application_get_doc_dir (self));
 		break;
+		case GEANY_DBUS_APPLICATION_CURRENT_DOCUMENT:
+		g_value_take_string (value, geany_dbus_application_get_current_document (self));
+		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
@@ -254,11 +377,122 @@ static void geany_dbus_application_set_property (GObject * object, guint propert
 }
 
 
+static void _dbus_geany_dbus_application_new_document (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	gboolean result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	result = geany_dbus_application_new_document (self);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
+static void _dbus_geany_dbus_application_open_document (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	char* filename = NULL;
+	GVariant* _tmp0_;
+	gboolean result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	_tmp0_ = g_variant_iter_next_value (&_arguments_iter);
+	filename = g_variant_dup_string (_tmp0_, NULL);
+	g_variant_unref (_tmp0_);
+	result = geany_dbus_application_open_document (self, filename);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	_g_free0 (filename);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
+static void _dbus_geany_dbus_application_open_documents (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	char** filenames = NULL;
+	int filenames_length1;
+	GVariant* _tmp1_;
+	char** _tmp2_;
+	int _tmp2__length;
+	int _tmp2__size;
+	int _tmp2__length1;
+	GVariantIter _tmp3_;
+	GVariant* _tmp4_;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	filenames_length1 = 0;
+	_tmp1_ = g_variant_iter_next_value (&_arguments_iter);
+	_tmp2_ = g_new (char*, 5);
+	_tmp2__length = 0;
+	_tmp2__size = 4;
+	_tmp2__length1 = 0;
+	g_variant_iter_init (&_tmp3_, _tmp1_);
+	for (; _tmp4_ = g_variant_iter_next_value (&_tmp3_); _tmp2__length1++) {
+		if (_tmp2__size == _tmp2__length) {
+			_tmp2__size = 2 * _tmp2__size;
+			_tmp2_ = g_renew (char*, _tmp2_, _tmp2__size + 1);
+		}
+		_tmp2_[_tmp2__length++] = g_variant_dup_string (_tmp4_, NULL);
+		g_variant_unref (_tmp4_);
+	}
+	filenames_length1 = _tmp2__length1;
+	_tmp2_[_tmp2__length] = NULL;
+	filenames = _tmp2_;
+	g_variant_unref (_tmp1_);
+	geany_dbus_application_open_documents (self, filenames, filenames_length1);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	filenames = (_vala_array_free (filenames, filenames_length1, (GDestroyNotify) g_free), NULL);
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
+static void _dbus_geany_dbus_application_close_notebook_page (GeanyDBusApplication* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	guint page_number = 0U;
+	GVariant* _tmp5_;
+	gboolean result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	_tmp5_ = g_variant_iter_next_value (&_arguments_iter);
+	page_number = g_variant_get_uint32 (_tmp5_);
+	g_variant_unref (_tmp5_);
+	result = geany_dbus_application_close_notebook_page (self, page_number);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
 static void geany_dbus_application_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data) {
 	gpointer* data;
 	gpointer object;
 	data = user_data;
 	object = data[0];
+	if (strcmp (method_name, "NewDocument") == 0) {
+		_dbus_geany_dbus_application_new_document (object, parameters, invocation);
+	} else if (strcmp (method_name, "OpenDocument") == 0) {
+		_dbus_geany_dbus_application_open_document (object, parameters, invocation);
+	} else if (strcmp (method_name, "OpenDocuments") == 0) {
+		_dbus_geany_dbus_application_open_documents (object, parameters, invocation);
+	} else if (strcmp (method_name, "CloseNotebookPage") == 0) {
+		_dbus_geany_dbus_application_close_notebook_page (object, parameters, invocation);
+	}
 }
 
 
@@ -298,6 +532,16 @@ static GVariant* _dbus_geany_dbus_application_get_doc_dir (GeanyDBusApplication*
 }
 
 
+static GVariant* _dbus_geany_dbus_application_get_current_document (GeanyDBusApplication* self) {
+	char* result;
+	GVariant* _reply;
+	result = geany_dbus_application_get_current_document (self);
+	_reply = g_variant_new_string (result);
+	_g_free0 (result);
+	return _reply;
+}
+
+
 static GVariant* geany_dbus_application_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data) {
 	gpointer* data;
 	gpointer object;
@@ -311,6 +555,8 @@ static GVariant* geany_dbus_application_dbus_interface_get_property (GDBusConnec
 		return _dbus_geany_dbus_application_get_data_dir (object);
 	} else if (strcmp (property_name, "DocDir") == 0) {
 		return _dbus_geany_dbus_application_get_doc_dir (object);
+	} else if (strcmp (property_name, "CurrentDocument") == 0) {
+		return _dbus_geany_dbus_application_get_current_document (object);
 	}
 	return NULL;
 }
@@ -405,6 +651,24 @@ static void _geany_dbus_application_unregister_object (gpointer user_data) {
 	g_object_unref (data[1]);
 	g_free (data[2]);
 	g_free (data);
+}
+
+
+static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func) {
+	if ((array != NULL) && (destroy_func != NULL)) {
+		int i;
+		for (i = 0; i < array_length; i = i + 1) {
+			if (((gpointer*) array)[i] != NULL) {
+				destroy_func (((gpointer*) array)[i]);
+			}
+		}
+	}
+}
+
+
+static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func) {
+	_vala_array_destroy (array, array_length, destroy_func);
+	g_free (array);
 }
 
 

@@ -6,1294 +6,993 @@
 #include <glib-object.h>
 #include "dbus-plugin.h"
 #include <geanyplugin.h>
-#include <stdlib.h>
-#include <string.h>
 #include <gio/gio.h>
 
 #define _g_free0(var) (var = (g_free (var), NULL))
 
-struct _GeanyDBusInterfacePrefsPrivate {
+struct _GeanyDBusInterfacePreferencesPrivate {
 	GeanyInterfacePrefs* prefs;
 };
 
 
-static gpointer geany_dbus_interface_prefs_parent_class = NULL;
+static gpointer geany_dbus_interface_preferences_parent_class = NULL;
 
-#define GEANY_DBUS_INTERFACE_PREFS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GEANY_DBUS_TYPE_INTERFACE_PREFS, GeanyDBusInterfacePrefsPrivate))
+#define GEANY_DBUS_INTERFACE_PREFERENCES_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GEANY_DBUS_TYPE_INTERFACE_PREFERENCES, GeanyDBusInterfacePreferencesPrivate))
 enum  {
-	GEANY_DBUS_INTERFACE_PREFS_DUMMY_PROPERTY
+	GEANY_DBUS_INTERFACE_PREFERENCES_DUMMY_PROPERTY,
+	GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_SYMBOL_VISIBLE,
+	GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_OPENFILES_VISIBLE,
+	GEANY_DBUS_INTERFACE_PREFERENCES_EDITOR_FONT,
+	GEANY_DBUS_INTERFACE_PREFERENCES_TAGBAR_FONT,
+	GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_FONT,
+	GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_NOTEBOOK_TABS,
+	GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_EDITOR,
+	GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_MSGWIN,
+	GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_SIDEBAR,
+	GEANY_DBUS_INTERFACE_PREFERENCES_STATUSBAR_VISIBLE,
+	GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_SYMBOL_LIST_EXPANDERS,
+	GEANY_DBUS_INTERFACE_PREFERENCES_NOTEBOOK_DOUBLE_CLICK_HIDES_WIDGETS,
+	GEANY_DBUS_INTERFACE_PREFERENCES_HIGHLIGHTING_INVERT_ALL,
+	GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_POS,
+	GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_STATUS_VISIBLE,
+	GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_COMPILER_VISIBLE,
+	GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_MESSAGES_VISIBLE,
+	GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_SCRIBBLE_VISIBLE
 };
-static void geany_dbus_interface_prefs_finalize (GObject* obj);
-static void geany_dbus_interface_prefs_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data);
-static void _dbus_geany_dbus_interface_prefs_get_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_editor_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_editor_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_tagbar_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_tagbar_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_show_notebook_tabs (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_show_notebook_tabs (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_tab_pos_editor (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_tab_pos_editor (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_tab_pos_msgwin (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_tab_pos_msgwin (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_tab_pos_sidebar (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_tab_pos_sidebar (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_statusbar_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_statusbar_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_highlighting_invert_all (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_highlighting_invert_all (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_sidebar_pos (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_sidebar_pos (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_status_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_status_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static GVariant* geany_dbus_interface_prefs_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data);
-static gboolean geany_dbus_interface_prefs_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data);
-static void _geany_dbus_interface_prefs_unregister_object (gpointer user_data);
+static void geany_dbus_interface_preferences_finalize (GObject* obj);
+static void geany_dbus_interface_preferences_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
+static void geany_dbus_interface_preferences_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
+static void geany_dbus_interface_preferences_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data);
+static GVariant* geany_dbus_interface_preferences_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_editor_font (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tagbar_font (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_font (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_show_notebook_tabs (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tab_pos_editor (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tab_pos_msgwin (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tab_pos_sidebar (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_statusbar_visible (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_highlighting_invert_all (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_sidebar_pos (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_status_visible (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_messages_visible (GeanyDBusInterfacePreferences* self);
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self);
+static gboolean geany_dbus_interface_preferences_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data);
+static void _dbus_geany_dbus_interface_preferences_set_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_editor_font (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_tagbar_font (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_font (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_show_notebook_tabs (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_tab_pos_editor (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_tab_pos_msgwin (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_tab_pos_sidebar (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_statusbar_visible (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_highlighting_invert_all (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_sidebar_pos (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_status_visible (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_messages_visible (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self, GVariant* _value);
+static void _geany_dbus_interface_preferences_unregister_object (gpointer user_data);
 
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_symbol_visible_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_symbol_visible_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_symbol_visible_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_symbol_visible_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_sidebar_symbol_visible = {-1, "GetSidebarSymbolVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_symbol_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_symbol_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_symbol_visible_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_symbol_visible_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_symbol_visible_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_symbol_visible_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_sidebar_symbol_visible = {-1, "SetSidebarSymbolVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_symbol_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_symbol_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_openfiles_visible_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_openfiles_visible_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_openfiles_visible_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_openfiles_visible_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_sidebar_openfiles_visible = {-1, "GetSidebarOpenfilesVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_openfiles_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_openfiles_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_openfiles_visible_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_openfiles_visible_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_openfiles_visible_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_openfiles_visible_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_sidebar_openfiles_visible = {-1, "SetSidebarOpenfilesVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_openfiles_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_openfiles_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_editor_font_result = {-1, "result", "s"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_editor_font_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_editor_font_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_editor_font_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_editor_font = {-1, "GetEditorFont", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_editor_font_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_editor_font_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_editor_font_val = {-1, "val", "s"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_editor_font_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_editor_font_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_editor_font_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_editor_font = {-1, "SetEditorFont", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_editor_font_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_editor_font_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_tagbar_font_result = {-1, "result", "s"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tagbar_font_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tagbar_font_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_tagbar_font_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_tagbar_font = {-1, "GetTagbarFont", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tagbar_font_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tagbar_font_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_tagbar_font_val = {-1, "val", "s"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tagbar_font_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_tagbar_font_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tagbar_font_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_tagbar_font = {-1, "SetTagbarFont", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tagbar_font_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tagbar_font_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_font_result = {-1, "result", "s"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_font_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_font_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_font_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_msgwin_font = {-1, "GetMsgwinFont", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_font_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_font_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_font_val = {-1, "val", "s"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_font_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_font_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_font_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_msgwin_font = {-1, "SetMsgwinFont", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_font_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_font_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_show_notebook_tabs_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_show_notebook_tabs_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_show_notebook_tabs_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_show_notebook_tabs_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_show_notebook_tabs = {-1, "GetShowNotebookTabs", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_show_notebook_tabs_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_show_notebook_tabs_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_show_notebook_tabs_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_show_notebook_tabs_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_show_notebook_tabs_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_show_notebook_tabs_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_show_notebook_tabs = {-1, "SetShowNotebookTabs", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_show_notebook_tabs_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_show_notebook_tabs_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_editor_result = {-1, "result", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_editor_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_editor_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_editor_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_tab_pos_editor = {-1, "GetTabPosEditor", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_editor_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_editor_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_editor_val = {-1, "val", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_editor_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_editor_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_editor_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_tab_pos_editor = {-1, "SetTabPosEditor", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_editor_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_editor_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_msgwin_result = {-1, "result", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_msgwin_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_msgwin_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_msgwin_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_tab_pos_msgwin = {-1, "GetTabPosMsgwin", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_msgwin_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_msgwin_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_msgwin_val = {-1, "val", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_msgwin_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_msgwin_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_msgwin_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_tab_pos_msgwin = {-1, "SetTabPosMsgwin", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_msgwin_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_msgwin_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_sidebar_result = {-1, "result", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_sidebar_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_sidebar_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_sidebar_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_tab_pos_sidebar = {-1, "GetTabPosSidebar", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_sidebar_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_tab_pos_sidebar_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_sidebar_val = {-1, "val", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_sidebar_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_sidebar_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_sidebar_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_tab_pos_sidebar = {-1, "SetTabPosSidebar", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_sidebar_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_tab_pos_sidebar_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_statusbar_visible_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_statusbar_visible_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_statusbar_visible_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_statusbar_visible_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_statusbar_visible = {-1, "GetStatusbarVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_statusbar_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_statusbar_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_statusbar_visible_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_statusbar_visible_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_statusbar_visible_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_statusbar_visible_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_statusbar_visible = {-1, "SetStatusbarVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_statusbar_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_statusbar_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_show_symbol_list_expanders_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_show_symbol_list_expanders_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_show_symbol_list_expanders_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_show_symbol_list_expanders_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_show_symbol_list_expanders = {-1, "GetShowSymbolListExpanders", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_show_symbol_list_expanders_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_show_symbol_list_expanders_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_show_symbol_list_expanders_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_show_symbol_list_expanders_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_show_symbol_list_expanders_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_show_symbol_list_expanders_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_show_symbol_list_expanders = {-1, "SetShowSymbolListExpanders", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_show_symbol_list_expanders_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_show_symbol_list_expanders_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_notebook_double_click_hides_widgets_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_notebook_double_click_hides_widgets_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_notebook_double_click_hides_widgets_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_notebook_double_click_hides_widgets_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_notebook_double_click_hides_widgets = {-1, "GetNotebookDoubleClickHidesWidgets", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_notebook_double_click_hides_widgets_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_notebook_double_click_hides_widgets_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_notebook_double_click_hides_widgets_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_notebook_double_click_hides_widgets_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_notebook_double_click_hides_widgets_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_notebook_double_click_hides_widgets_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_notebook_double_click_hides_widgets = {-1, "SetNotebookDoubleClickHidesWidgets", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_notebook_double_click_hides_widgets_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_notebook_double_click_hides_widgets_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_highlighting_invert_all_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_highlighting_invert_all_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_highlighting_invert_all_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_highlighting_invert_all_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_highlighting_invert_all = {-1, "GetHighlightingInvertAll", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_highlighting_invert_all_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_highlighting_invert_all_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_highlighting_invert_all_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_highlighting_invert_all_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_highlighting_invert_all_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_highlighting_invert_all_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_highlighting_invert_all = {-1, "SetHighlightingInvertAll", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_highlighting_invert_all_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_highlighting_invert_all_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_pos_result = {-1, "result", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_pos_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_pos_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_pos_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_sidebar_pos = {-1, "GetSidebarPos", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_pos_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_sidebar_pos_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_pos_val = {-1, "val", "i"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_pos_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_pos_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_pos_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_sidebar_pos = {-1, "SetSidebarPos", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_pos_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_sidebar_pos_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_status_visible_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_status_visible_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_status_visible_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_status_visible_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_msgwin_status_visible = {-1, "GetMsgwinStatusVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_status_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_status_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_status_visible_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_status_visible_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_status_visible_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_status_visible_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_msgwin_status_visible = {-1, "SetMsgwinStatusVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_status_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_status_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_compiler_visible_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_compiler_visible_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_compiler_visible_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_compiler_visible_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_msgwin_compiler_visible = {-1, "GetMsgwinCompilerVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_compiler_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_compiler_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_compiler_visible_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_compiler_visible_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_compiler_visible_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_compiler_visible_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_msgwin_compiler_visible = {-1, "SetMsgwinCompilerVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_compiler_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_compiler_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_messages_visible_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_messages_visible_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_messages_visible_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_messages_visible_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_msgwin_messages_visible = {-1, "GetMsgwinMessagesVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_messages_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_messages_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_messages_visible_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_messages_visible_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_messages_visible_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_messages_visible_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_msgwin_messages_visible = {-1, "SetMsgwinMessagesVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_messages_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_messages_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_scribble_visible_result = {-1, "result", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_scribble_visible_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_scribble_visible_out[] = {&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_scribble_visible_result, NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_get_msgwin_scribble_visible = {-1, "GetMsgwinScribbleVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_scribble_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_get_msgwin_scribble_visible_out)};
-static const GDBusArgInfo _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_scribble_visible_val = {-1, "val", "b"};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_scribble_visible_in[] = {&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_scribble_visible_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_scribble_visible_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_interface_prefs_dbus_method_info_set_msgwin_scribble_visible = {-1, "SetMsgwinScribbleVisible", (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_scribble_visible_in), (GDBusArgInfo **) (&_geany_dbus_interface_prefs_dbus_arg_info_set_msgwin_scribble_visible_out)};
-static const GDBusMethodInfo * const _geany_dbus_interface_prefs_dbus_method_info[] = {&_geany_dbus_interface_prefs_dbus_method_info_get_sidebar_symbol_visible, &_geany_dbus_interface_prefs_dbus_method_info_set_sidebar_symbol_visible, &_geany_dbus_interface_prefs_dbus_method_info_get_sidebar_openfiles_visible, &_geany_dbus_interface_prefs_dbus_method_info_set_sidebar_openfiles_visible, &_geany_dbus_interface_prefs_dbus_method_info_get_editor_font, &_geany_dbus_interface_prefs_dbus_method_info_set_editor_font, &_geany_dbus_interface_prefs_dbus_method_info_get_tagbar_font, &_geany_dbus_interface_prefs_dbus_method_info_set_tagbar_font, &_geany_dbus_interface_prefs_dbus_method_info_get_msgwin_font, &_geany_dbus_interface_prefs_dbus_method_info_set_msgwin_font, &_geany_dbus_interface_prefs_dbus_method_info_get_show_notebook_tabs, &_geany_dbus_interface_prefs_dbus_method_info_set_show_notebook_tabs, &_geany_dbus_interface_prefs_dbus_method_info_get_tab_pos_editor, &_geany_dbus_interface_prefs_dbus_method_info_set_tab_pos_editor, &_geany_dbus_interface_prefs_dbus_method_info_get_tab_pos_msgwin, &_geany_dbus_interface_prefs_dbus_method_info_set_tab_pos_msgwin, &_geany_dbus_interface_prefs_dbus_method_info_get_tab_pos_sidebar, &_geany_dbus_interface_prefs_dbus_method_info_set_tab_pos_sidebar, &_geany_dbus_interface_prefs_dbus_method_info_get_statusbar_visible, &_geany_dbus_interface_prefs_dbus_method_info_set_statusbar_visible, &_geany_dbus_interface_prefs_dbus_method_info_get_show_symbol_list_expanders, &_geany_dbus_interface_prefs_dbus_method_info_set_show_symbol_list_expanders, &_geany_dbus_interface_prefs_dbus_method_info_get_notebook_double_click_hides_widgets, &_geany_dbus_interface_prefs_dbus_method_info_set_notebook_double_click_hides_widgets, &_geany_dbus_interface_prefs_dbus_method_info_get_highlighting_invert_all, &_geany_dbus_interface_prefs_dbus_method_info_set_highlighting_invert_all, &_geany_dbus_interface_prefs_dbus_method_info_get_sidebar_pos, &_geany_dbus_interface_prefs_dbus_method_info_set_sidebar_pos, &_geany_dbus_interface_prefs_dbus_method_info_get_msgwin_status_visible, &_geany_dbus_interface_prefs_dbus_method_info_set_msgwin_status_visible, &_geany_dbus_interface_prefs_dbus_method_info_get_msgwin_compiler_visible, &_geany_dbus_interface_prefs_dbus_method_info_set_msgwin_compiler_visible, &_geany_dbus_interface_prefs_dbus_method_info_get_msgwin_messages_visible, &_geany_dbus_interface_prefs_dbus_method_info_set_msgwin_messages_visible, &_geany_dbus_interface_prefs_dbus_method_info_get_msgwin_scribble_visible, &_geany_dbus_interface_prefs_dbus_method_info_set_msgwin_scribble_visible, NULL};
-static const GDBusSignalInfo * const _geany_dbus_interface_prefs_dbus_signal_info[] = {NULL};
-static const GDBusPropertyInfo * const _geany_dbus_interface_prefs_dbus_property_info[] = {NULL};
-static const GDBusInterfaceInfo _geany_dbus_interface_prefs_dbus_interface_info = {-1, "org.geany.DBus.InterfacePrefs", (GDBusMethodInfo **) (&_geany_dbus_interface_prefs_dbus_method_info), (GDBusSignalInfo **) (&_geany_dbus_interface_prefs_dbus_signal_info), (GDBusPropertyInfo **) (&_geany_dbus_interface_prefs_dbus_property_info)};
-static const GDBusInterfaceVTable _geany_dbus_interface_prefs_dbus_interface_vtable = {geany_dbus_interface_prefs_dbus_interface_method_call, geany_dbus_interface_prefs_dbus_interface_get_property, geany_dbus_interface_prefs_dbus_interface_set_property};
+static const GDBusMethodInfo * const _geany_dbus_interface_preferences_dbus_method_info[] = {NULL};
+static const GDBusSignalInfo * const _geany_dbus_interface_preferences_dbus_signal_info[] = {NULL};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_sidebar_symbol_visible = {-1, "SidebarSymbolVisible", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_sidebar_openfiles_visible = {-1, "SidebarOpenfilesVisible", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_editor_font = {-1, "EditorFont", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_tagbar_font = {-1, "TagbarFont", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_msgwin_font = {-1, "MsgwinFont", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_show_notebook_tabs = {-1, "ShowNotebookTabs", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_tab_pos_editor = {-1, "TabPosEditor", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_tab_pos_msgwin = {-1, "TabPosMsgwin", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_tab_pos_sidebar = {-1, "TabPosSidebar", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_statusbar_visible = {-1, "StatusbarVisible", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_show_symbol_list_expanders = {-1, "ShowSymbolListExpanders", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_notebook_double_click_hides_widgets = {-1, "NotebookDoubleClickHidesWidgets", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_highlighting_invert_all = {-1, "HighlightingInvertAll", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_sidebar_pos = {-1, "SidebarPos", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_msgwin_status_visible = {-1, "MsgwinStatusVisible", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_msgwin_compiler_visible = {-1, "MsgwinCompilerVisible", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_msgwin_messages_visible = {-1, "MsgwinMessagesVisible", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_interface_preferences_dbus_property_info_msgwin_scribble_visible = {-1, "MsgwinScribbleVisible", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo * const _geany_dbus_interface_preferences_dbus_property_info[] = {&_geany_dbus_interface_preferences_dbus_property_info_sidebar_symbol_visible, &_geany_dbus_interface_preferences_dbus_property_info_sidebar_openfiles_visible, &_geany_dbus_interface_preferences_dbus_property_info_editor_font, &_geany_dbus_interface_preferences_dbus_property_info_tagbar_font, &_geany_dbus_interface_preferences_dbus_property_info_msgwin_font, &_geany_dbus_interface_preferences_dbus_property_info_show_notebook_tabs, &_geany_dbus_interface_preferences_dbus_property_info_tab_pos_editor, &_geany_dbus_interface_preferences_dbus_property_info_tab_pos_msgwin, &_geany_dbus_interface_preferences_dbus_property_info_tab_pos_sidebar, &_geany_dbus_interface_preferences_dbus_property_info_statusbar_visible, &_geany_dbus_interface_preferences_dbus_property_info_show_symbol_list_expanders, &_geany_dbus_interface_preferences_dbus_property_info_notebook_double_click_hides_widgets, &_geany_dbus_interface_preferences_dbus_property_info_highlighting_invert_all, &_geany_dbus_interface_preferences_dbus_property_info_sidebar_pos, &_geany_dbus_interface_preferences_dbus_property_info_msgwin_status_visible, &_geany_dbus_interface_preferences_dbus_property_info_msgwin_compiler_visible, &_geany_dbus_interface_preferences_dbus_property_info_msgwin_messages_visible, &_geany_dbus_interface_preferences_dbus_property_info_msgwin_scribble_visible, NULL};
+static const GDBusInterfaceInfo _geany_dbus_interface_preferences_dbus_interface_info = {-1, "org.geany.DBus.Interfaces.InterfacePrefs", (GDBusMethodInfo **) (&_geany_dbus_interface_preferences_dbus_method_info), (GDBusSignalInfo **) (&_geany_dbus_interface_preferences_dbus_signal_info), (GDBusPropertyInfo **) (&_geany_dbus_interface_preferences_dbus_property_info)};
+static const GDBusInterfaceVTable _geany_dbus_interface_preferences_dbus_interface_vtable = {geany_dbus_interface_preferences_dbus_interface_method_call, geany_dbus_interface_preferences_dbus_interface_get_property, geany_dbus_interface_preferences_dbus_interface_set_property};
 
 
-GeanyDBusInterfacePrefs* geany_dbus_interface_prefs_construct (GType object_type, GeanyInterfacePrefs* prefs) {
-	GeanyDBusInterfacePrefs * self;
-	self = (GeanyDBusInterfacePrefs*) g_object_new (object_type, NULL);
+GeanyDBusInterfacePreferences* geany_dbus_interface_preferences_construct (GType object_type, GeanyInterfacePrefs* prefs) {
+	GeanyDBusInterfacePreferences * self;
+	g_return_val_if_fail (prefs != NULL, NULL);
+	self = (GeanyDBusInterfacePreferences*) g_object_new (object_type, NULL);
 	self->priv->prefs = prefs;
 	return self;
 }
 
 
-GeanyDBusInterfacePrefs* geany_dbus_interface_prefs_new (GeanyInterfacePrefs* prefs) {
-	return geany_dbus_interface_prefs_construct (GEANY_DBUS_TYPE_INTERFACE_PREFS, prefs);
+GeanyDBusInterfacePreferences* geany_dbus_interface_preferences_new (GeanyInterfacePrefs* prefs) {
+	return geany_dbus_interface_preferences_construct (GEANY_DBUS_TYPE_INTERFACE_PREFERENCES, prefs);
 }
 
 
-gboolean geany_dbus_interface_prefs_get_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->sidebar_symbol_visible;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->sidebar_symbol_visible = val;
+	self->priv->prefs->sidebar_symbol_visible = value;
+	g_object_notify ((GObject *) self, "sidebar-symbol-visible");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->sidebar_openfiles_visible;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->sidebar_openfiles_visible = val;
+	self->priv->prefs->sidebar_openfiles_visible = value;
+	g_object_notify ((GObject *) self, "sidebar-openfiles-visible");
 }
 
 
-const char* geany_dbus_interface_prefs_get_editor_font (GeanyDBusInterfacePrefs* self) {
-	const char* result = NULL;
+const char* geany_dbus_interface_preferences_get_editor_font (GeanyDBusInterfacePreferences* self) {
+	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (self->priv->prefs != NULL, "");
 	result = self->priv->prefs->editor_font;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_editor_font (GeanyDBusInterfacePrefs* self, const char* val) {
+void geany_dbus_interface_preferences_set_editor_font (GeanyDBusInterfacePreferences* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (val != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->editor_font = (_tmp0_ = g_strdup (val), _g_free0 (self->priv->prefs->editor_font), _tmp0_);
+	self->priv->prefs->editor_font = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->prefs->editor_font), _tmp0_);
+	g_object_notify ((GObject *) self, "editor-font");
 }
 
 
-const char* geany_dbus_interface_prefs_get_tagbar_font (GeanyDBusInterfacePrefs* self) {
-	const char* result = NULL;
+const char* geany_dbus_interface_preferences_get_tagbar_font (GeanyDBusInterfacePreferences* self) {
+	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (self->priv->prefs != NULL, "");
 	result = self->priv->prefs->tagbar_font;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_tagbar_font (GeanyDBusInterfacePrefs* self, const char* val) {
+void geany_dbus_interface_preferences_set_tagbar_font (GeanyDBusInterfacePreferences* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (val != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->tagbar_font = (_tmp0_ = g_strdup (val), _g_free0 (self->priv->prefs->tagbar_font), _tmp0_);
+	self->priv->prefs->tagbar_font = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->prefs->tagbar_font), _tmp0_);
+	g_object_notify ((GObject *) self, "tagbar-font");
 }
 
 
-const char* geany_dbus_interface_prefs_get_msgwin_font (GeanyDBusInterfacePrefs* self) {
-	const char* result = NULL;
+const char* geany_dbus_interface_preferences_get_msgwin_font (GeanyDBusInterfacePreferences* self) {
+	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (self->priv->prefs != NULL, "");
 	result = self->priv->prefs->msgwin_font;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_msgwin_font (GeanyDBusInterfacePrefs* self, const char* val) {
+void geany_dbus_interface_preferences_set_msgwin_font (GeanyDBusInterfacePreferences* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (val != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->msgwin_font = (_tmp0_ = g_strdup (val), _g_free0 (self->priv->prefs->msgwin_font), _tmp0_);
+	self->priv->prefs->msgwin_font = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->prefs->msgwin_font), _tmp0_);
+	g_object_notify ((GObject *) self, "msgwin-font");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_show_notebook_tabs (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_show_notebook_tabs (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->show_notebook_tabs;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_show_notebook_tabs (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_show_notebook_tabs (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->show_notebook_tabs = val;
+	self->priv->prefs->show_notebook_tabs = value;
+	g_object_notify ((GObject *) self, "show-notebook-tabs");
 }
 
 
-gint geany_dbus_interface_prefs_get_tab_pos_editor (GeanyDBusInterfacePrefs* self) {
-	gint result = 0;
+gint geany_dbus_interface_preferences_get_tab_pos_editor (GeanyDBusInterfacePreferences* self) {
+	gint result;
 	g_return_val_if_fail (self != NULL, 0);
-	g_return_val_if_fail (self->priv->prefs != NULL, -1);
 	result = self->priv->prefs->tab_pos_editor;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_tab_pos_editor (GeanyDBusInterfacePrefs* self, gint val) {
+void geany_dbus_interface_preferences_set_tab_pos_editor (GeanyDBusInterfacePreferences* self, gint value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->tab_pos_editor = val;
+	self->priv->prefs->tab_pos_editor = value;
+	g_object_notify ((GObject *) self, "tab-pos-editor");
 }
 
 
-gint geany_dbus_interface_prefs_get_tab_pos_msgwin (GeanyDBusInterfacePrefs* self) {
-	gint result = 0;
+gint geany_dbus_interface_preferences_get_tab_pos_msgwin (GeanyDBusInterfacePreferences* self) {
+	gint result;
 	g_return_val_if_fail (self != NULL, 0);
-	g_return_val_if_fail (self->priv->prefs != NULL, -1);
 	result = self->priv->prefs->tab_pos_msgwin;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_tab_pos_msgwin (GeanyDBusInterfacePrefs* self, gint val) {
+void geany_dbus_interface_preferences_set_tab_pos_msgwin (GeanyDBusInterfacePreferences* self, gint value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->tab_pos_msgwin = val;
+	self->priv->prefs->tab_pos_msgwin = value;
+	g_object_notify ((GObject *) self, "tab-pos-msgwin");
 }
 
 
-gint geany_dbus_interface_prefs_get_tab_pos_sidebar (GeanyDBusInterfacePrefs* self) {
-	gint result = 0;
+gint geany_dbus_interface_preferences_get_tab_pos_sidebar (GeanyDBusInterfacePreferences* self) {
+	gint result;
 	g_return_val_if_fail (self != NULL, 0);
-	g_return_val_if_fail (self->priv->prefs != NULL, -1);
 	result = self->priv->prefs->tab_pos_sidebar;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_tab_pos_sidebar (GeanyDBusInterfacePrefs* self, gint val) {
+void geany_dbus_interface_preferences_set_tab_pos_sidebar (GeanyDBusInterfacePreferences* self, gint value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->tab_pos_sidebar = val;
+	self->priv->prefs->tab_pos_sidebar = value;
+	g_object_notify ((GObject *) self, "tab-pos-sidebar");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_statusbar_visible (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_statusbar_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->statusbar_visible;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_statusbar_visible (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_statusbar_visible (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->statusbar_visible = val;
+	self->priv->prefs->statusbar_visible = value;
+	g_object_notify ((GObject *) self, "statusbar-visible");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->show_symbol_list_expanders;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->show_symbol_list_expanders = val;
+	self->priv->prefs->show_symbol_list_expanders = value;
+	g_object_notify ((GObject *) self, "show-symbol-list-expanders");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->notebook_double_click_hides_widgets;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->notebook_double_click_hides_widgets = val;
+	self->priv->prefs->notebook_double_click_hides_widgets = value;
+	g_object_notify ((GObject *) self, "notebook-double-click-hides-widgets");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_highlighting_invert_all (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_highlighting_invert_all (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->highlighting_invert_all;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_highlighting_invert_all (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_highlighting_invert_all (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->highlighting_invert_all = val;
+	self->priv->prefs->highlighting_invert_all = value;
+	g_object_notify ((GObject *) self, "highlighting-invert-all");
 }
 
 
-gint geany_dbus_interface_prefs_get_sidebar_pos (GeanyDBusInterfacePrefs* self) {
-	gint result = 0;
+gint geany_dbus_interface_preferences_get_sidebar_pos (GeanyDBusInterfacePreferences* self) {
+	gint result;
 	g_return_val_if_fail (self != NULL, 0);
-	g_return_val_if_fail (self->priv->prefs != NULL, -1);
 	result = self->priv->prefs->sidebar_pos;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_sidebar_pos (GeanyDBusInterfacePrefs* self, gint val) {
+void geany_dbus_interface_preferences_set_sidebar_pos (GeanyDBusInterfacePreferences* self, gint value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->sidebar_pos = val;
+	self->priv->prefs->sidebar_pos = value;
+	g_object_notify ((GObject *) self, "sidebar-pos");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_msgwin_status_visible (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_msgwin_status_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->msgwin_status_visible;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_msgwin_status_visible (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_msgwin_status_visible (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->msgwin_status_visible = val;
+	self->priv->prefs->msgwin_status_visible = value;
+	g_object_notify ((GObject *) self, "msgwin-status-visible");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->msgwin_compiler_visible;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->msgwin_compiler_visible = val;
+	self->priv->prefs->msgwin_compiler_visible = value;
+	g_object_notify ((GObject *) self, "msgwin-compiler-visible");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_msgwin_messages_visible (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_msgwin_messages_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->msgwin_messages_visible;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_msgwin_messages_visible (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->msgwin_messages_visible = val;
+	self->priv->prefs->msgwin_messages_visible = value;
+	g_object_notify ((GObject *) self, "msgwin-messages-visible");
 }
 
 
-gboolean geany_dbus_interface_prefs_get_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self) {
-	gboolean result = FALSE;
+gboolean geany_dbus_interface_preferences_get_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (self->priv->prefs != NULL, FALSE);
 	result = self->priv->prefs->msgwin_scribble_visible;
 	return result;
 }
 
 
-void geany_dbus_interface_prefs_set_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, gboolean val) {
+void geany_dbus_interface_preferences_set_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->prefs != NULL);
-	self->priv->prefs->msgwin_scribble_visible = val;
+	self->priv->prefs->msgwin_scribble_visible = value;
+	g_object_notify ((GObject *) self, "msgwin-scribble-visible");
 }
 
 
-static void geany_dbus_interface_prefs_class_init (GeanyDBusInterfacePrefsClass * klass) {
-	geany_dbus_interface_prefs_parent_class = g_type_class_peek_parent (klass);
-	g_type_class_add_private (klass, sizeof (GeanyDBusInterfacePrefsPrivate));
-	G_OBJECT_CLASS (klass)->finalize = geany_dbus_interface_prefs_finalize;
+static void geany_dbus_interface_preferences_class_init (GeanyDBusInterfacePreferencesClass * klass) {
+	geany_dbus_interface_preferences_parent_class = g_type_class_peek_parent (klass);
+	g_type_class_add_private (klass, sizeof (GeanyDBusInterfacePreferencesPrivate));
+	G_OBJECT_CLASS (klass)->get_property = geany_dbus_interface_preferences_get_property;
+	G_OBJECT_CLASS (klass)->set_property = geany_dbus_interface_preferences_set_property;
+	G_OBJECT_CLASS (klass)->finalize = geany_dbus_interface_preferences_finalize;
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_SYMBOL_VISIBLE, g_param_spec_boolean ("sidebar-symbol-visible", "sidebar-symbol-visible", "sidebar-symbol-visible", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_OPENFILES_VISIBLE, g_param_spec_boolean ("sidebar-openfiles-visible", "sidebar-openfiles-visible", "sidebar-openfiles-visible", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_EDITOR_FONT, g_param_spec_string ("editor-font", "editor-font", "editor-font", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_TAGBAR_FONT, g_param_spec_string ("tagbar-font", "tagbar-font", "tagbar-font", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_FONT, g_param_spec_string ("msgwin-font", "msgwin-font", "msgwin-font", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_NOTEBOOK_TABS, g_param_spec_boolean ("show-notebook-tabs", "show-notebook-tabs", "show-notebook-tabs", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_EDITOR, g_param_spec_int ("tab-pos-editor", "tab-pos-editor", "tab-pos-editor", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_MSGWIN, g_param_spec_int ("tab-pos-msgwin", "tab-pos-msgwin", "tab-pos-msgwin", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_SIDEBAR, g_param_spec_int ("tab-pos-sidebar", "tab-pos-sidebar", "tab-pos-sidebar", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_STATUSBAR_VISIBLE, g_param_spec_boolean ("statusbar-visible", "statusbar-visible", "statusbar-visible", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_SYMBOL_LIST_EXPANDERS, g_param_spec_boolean ("show-symbol-list-expanders", "show-symbol-list-expanders", "show-symbol-list-expanders", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_NOTEBOOK_DOUBLE_CLICK_HIDES_WIDGETS, g_param_spec_boolean ("notebook-double-click-hides-widgets", "notebook-double-click-hides-widgets", "notebook-double-click-hides-widgets", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_HIGHLIGHTING_INVERT_ALL, g_param_spec_boolean ("highlighting-invert-all", "highlighting-invert-all", "highlighting-invert-all", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_POS, g_param_spec_int ("sidebar-pos", "sidebar-pos", "sidebar-pos", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_STATUS_VISIBLE, g_param_spec_boolean ("msgwin-status-visible", "msgwin-status-visible", "msgwin-status-visible", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_COMPILER_VISIBLE, g_param_spec_boolean ("msgwin-compiler-visible", "msgwin-compiler-visible", "msgwin-compiler-visible", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_MESSAGES_VISIBLE, g_param_spec_boolean ("msgwin-messages-visible", "msgwin-messages-visible", "msgwin-messages-visible", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_SCRIBBLE_VISIBLE, g_param_spec_boolean ("msgwin-scribble-visible", "msgwin-scribble-visible", "msgwin-scribble-visible", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 }
 
 
-static void geany_dbus_interface_prefs_instance_init (GeanyDBusInterfacePrefs * self) {
-	self->priv = GEANY_DBUS_INTERFACE_PREFS_GET_PRIVATE (self);
+static void geany_dbus_interface_preferences_instance_init (GeanyDBusInterfacePreferences * self) {
+	self->priv = GEANY_DBUS_INTERFACE_PREFERENCES_GET_PRIVATE (self);
 }
 
 
-static void geany_dbus_interface_prefs_finalize (GObject* obj) {
-	GeanyDBusInterfacePrefs * self;
-	self = GEANY_DBUS_INTERFACE_PREFS (obj);
-	G_OBJECT_CLASS (geany_dbus_interface_prefs_parent_class)->finalize (obj);
+static void geany_dbus_interface_preferences_finalize (GObject* obj) {
+	GeanyDBusInterfacePreferences * self;
+	self = GEANY_DBUS_INTERFACE_PREFERENCES (obj);
+	G_OBJECT_CLASS (geany_dbus_interface_preferences_parent_class)->finalize (obj);
 }
 
 
-GType geany_dbus_interface_prefs_get_type (void) {
-	static volatile gsize geany_dbus_interface_prefs_type_id__volatile = 0;
-	if (g_once_init_enter (&geany_dbus_interface_prefs_type_id__volatile)) {
-		static const GTypeInfo g_define_type_info = { sizeof (GeanyDBusInterfacePrefsClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) geany_dbus_interface_prefs_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GeanyDBusInterfacePrefs), 0, (GInstanceInitFunc) geany_dbus_interface_prefs_instance_init, NULL };
-		GType geany_dbus_interface_prefs_type_id;
-		geany_dbus_interface_prefs_type_id = g_type_register_static (G_TYPE_OBJECT, "GeanyDBusInterfacePrefs", &g_define_type_info, 0);
-		g_once_init_leave (&geany_dbus_interface_prefs_type_id__volatile, geany_dbus_interface_prefs_type_id);
+GType geany_dbus_interface_preferences_get_type (void) {
+	static volatile gsize geany_dbus_interface_preferences_type_id__volatile = 0;
+	if (g_once_init_enter (&geany_dbus_interface_preferences_type_id__volatile)) {
+		static const GTypeInfo g_define_type_info = { sizeof (GeanyDBusInterfacePreferencesClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) geany_dbus_interface_preferences_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GeanyDBusInterfacePreferences), 0, (GInstanceInitFunc) geany_dbus_interface_preferences_instance_init, NULL };
+		GType geany_dbus_interface_preferences_type_id;
+		geany_dbus_interface_preferences_type_id = g_type_register_static (G_TYPE_OBJECT, "GeanyDBusInterfacePreferences", &g_define_type_info, 0);
+		g_once_init_leave (&geany_dbus_interface_preferences_type_id__volatile, geany_dbus_interface_preferences_type_id);
 	}
-	return geany_dbus_interface_prefs_type_id__volatile;
+	return geany_dbus_interface_preferences_type_id__volatile;
 }
 
 
-static void _dbus_geany_dbus_interface_prefs_get_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_sidebar_symbol_visible (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_sidebar_symbol_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp0_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp0_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp0_);
-	g_variant_unref (_tmp0_);
-	geany_dbus_interface_prefs_set_sidebar_symbol_visible (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_sidebar_openfiles_visible (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_sidebar_openfiles_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp1_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp1_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp1_);
-	g_variant_unref (_tmp1_);
-	geany_dbus_interface_prefs_set_sidebar_openfiles_visible (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_editor_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	const char* result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_editor_font (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_editor_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	char* val = NULL;
-	GVariant* _tmp2_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp2_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp2_, NULL);
-	g_variant_unref (_tmp2_);
-	geany_dbus_interface_prefs_set_editor_font (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_g_free0 (val);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_tagbar_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	const char* result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_tagbar_font (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_tagbar_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	char* val = NULL;
-	GVariant* _tmp3_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp3_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp3_, NULL);
-	g_variant_unref (_tmp3_);
-	geany_dbus_interface_prefs_set_tagbar_font (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_g_free0 (val);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	const char* result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_msgwin_font (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_font (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	char* val = NULL;
-	GVariant* _tmp4_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp4_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp4_, NULL);
-	g_variant_unref (_tmp4_);
-	geany_dbus_interface_prefs_set_msgwin_font (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_g_free0 (val);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_show_notebook_tabs (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_show_notebook_tabs (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_show_notebook_tabs (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp5_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp5_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp5_);
-	g_variant_unref (_tmp5_);
-	geany_dbus_interface_prefs_set_show_notebook_tabs (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_tab_pos_editor (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_tab_pos_editor (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_tab_pos_editor (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint val = 0;
-	GVariant* _tmp6_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp6_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp6_);
-	g_variant_unref (_tmp6_);
-	geany_dbus_interface_prefs_set_tab_pos_editor (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_tab_pos_msgwin (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_tab_pos_msgwin (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_tab_pos_msgwin (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint val = 0;
-	GVariant* _tmp7_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp7_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp7_);
-	g_variant_unref (_tmp7_);
-	geany_dbus_interface_prefs_set_tab_pos_msgwin (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_tab_pos_sidebar (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_tab_pos_sidebar (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_tab_pos_sidebar (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint val = 0;
-	GVariant* _tmp8_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp8_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp8_);
-	g_variant_unref (_tmp8_);
-	geany_dbus_interface_prefs_set_tab_pos_sidebar (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_statusbar_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_statusbar_visible (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_statusbar_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp9_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp9_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp9_);
-	g_variant_unref (_tmp9_);
-	geany_dbus_interface_prefs_set_statusbar_visible (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_show_symbol_list_expanders (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_show_symbol_list_expanders (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp10_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp10_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp10_);
-	g_variant_unref (_tmp10_);
-	geany_dbus_interface_prefs_set_show_symbol_list_expanders (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_notebook_double_click_hides_widgets (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp11_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp11_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp11_);
-	g_variant_unref (_tmp11_);
-	geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_highlighting_invert_all (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_highlighting_invert_all (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_highlighting_invert_all (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp12_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp12_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp12_);
-	g_variant_unref (_tmp12_);
-	geany_dbus_interface_prefs_set_highlighting_invert_all (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_sidebar_pos (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_sidebar_pos (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_sidebar_pos (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint val = 0;
-	GVariant* _tmp13_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp13_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp13_);
-	g_variant_unref (_tmp13_);
-	geany_dbus_interface_prefs_set_sidebar_pos (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_status_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_msgwin_status_visible (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_status_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp14_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp14_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp14_);
-	g_variant_unref (_tmp14_);
-	geany_dbus_interface_prefs_set_msgwin_status_visible (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_msgwin_compiler_visible (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_compiler_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp15_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp15_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp15_);
-	g_variant_unref (_tmp15_);
-	geany_dbus_interface_prefs_set_msgwin_compiler_visible (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_msgwin_messages_visible (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_messages_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp16_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp16_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp16_);
-	g_variant_unref (_tmp16_);
-	geany_dbus_interface_prefs_set_msgwin_messages_visible (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_get_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_interface_prefs_get_msgwin_scribble_visible (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_interface_prefs_set_msgwin_scribble_visible (GeanyDBusInterfacePrefs* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gboolean val = FALSE;
-	GVariant* _tmp17_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp17_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_boolean (_tmp17_);
-	g_variant_unref (_tmp17_);
-	geany_dbus_interface_prefs_set_msgwin_scribble_visible (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void geany_dbus_interface_prefs_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data) {
-	gpointer* data;
-	gpointer object;
-	data = user_data;
-	object = data[0];
-	if (strcmp (method_name, "GetSidebarSymbolVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_sidebar_symbol_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetSidebarSymbolVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_sidebar_symbol_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetSidebarOpenfilesVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_sidebar_openfiles_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetSidebarOpenfilesVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_sidebar_openfiles_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetEditorFont") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_editor_font (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetEditorFont") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_editor_font (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetTagbarFont") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_tagbar_font (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetTagbarFont") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_tagbar_font (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetMsgwinFont") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_msgwin_font (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetMsgwinFont") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_msgwin_font (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetShowNotebookTabs") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_show_notebook_tabs (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetShowNotebookTabs") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_show_notebook_tabs (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetTabPosEditor") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_tab_pos_editor (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetTabPosEditor") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_tab_pos_editor (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetTabPosMsgwin") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_tab_pos_msgwin (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetTabPosMsgwin") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_tab_pos_msgwin (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetTabPosSidebar") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_tab_pos_sidebar (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetTabPosSidebar") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_tab_pos_sidebar (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetStatusbarVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_statusbar_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetStatusbarVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_statusbar_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetShowSymbolListExpanders") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_show_symbol_list_expanders (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetShowSymbolListExpanders") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_show_symbol_list_expanders (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetNotebookDoubleClickHidesWidgets") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_notebook_double_click_hides_widgets (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetNotebookDoubleClickHidesWidgets") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_notebook_double_click_hides_widgets (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetHighlightingInvertAll") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_highlighting_invert_all (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetHighlightingInvertAll") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_highlighting_invert_all (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetSidebarPos") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_sidebar_pos (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetSidebarPos") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_sidebar_pos (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetMsgwinStatusVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_msgwin_status_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetMsgwinStatusVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_msgwin_status_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetMsgwinCompilerVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_msgwin_compiler_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetMsgwinCompilerVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_msgwin_compiler_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetMsgwinMessagesVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_msgwin_messages_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetMsgwinMessagesVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_msgwin_messages_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetMsgwinScribbleVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_get_msgwin_scribble_visible (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetMsgwinScribbleVisible") == 0) {
-		_dbus_geany_dbus_interface_prefs_set_msgwin_scribble_visible (object, parameters, invocation);
+static void geany_dbus_interface_preferences_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec) {
+	GeanyDBusInterfacePreferences * self;
+	self = GEANY_DBUS_INTERFACE_PREFERENCES (object);
+	switch (property_id) {
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_SYMBOL_VISIBLE:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_sidebar_symbol_visible (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_OPENFILES_VISIBLE:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_sidebar_openfiles_visible (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_EDITOR_FONT:
+		g_value_set_string (value, geany_dbus_interface_preferences_get_editor_font (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAGBAR_FONT:
+		g_value_set_string (value, geany_dbus_interface_preferences_get_tagbar_font (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_FONT:
+		g_value_set_string (value, geany_dbus_interface_preferences_get_msgwin_font (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_NOTEBOOK_TABS:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_show_notebook_tabs (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_EDITOR:
+		g_value_set_int (value, geany_dbus_interface_preferences_get_tab_pos_editor (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_MSGWIN:
+		g_value_set_int (value, geany_dbus_interface_preferences_get_tab_pos_msgwin (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_SIDEBAR:
+		g_value_set_int (value, geany_dbus_interface_preferences_get_tab_pos_sidebar (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_STATUSBAR_VISIBLE:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_statusbar_visible (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_SYMBOL_LIST_EXPANDERS:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_show_symbol_list_expanders (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_NOTEBOOK_DOUBLE_CLICK_HIDES_WIDGETS:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_notebook_double_click_hides_widgets (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_HIGHLIGHTING_INVERT_ALL:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_highlighting_invert_all (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_POS:
+		g_value_set_int (value, geany_dbus_interface_preferences_get_sidebar_pos (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_STATUS_VISIBLE:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_msgwin_status_visible (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_COMPILER_VISIBLE:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_msgwin_compiler_visible (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_MESSAGES_VISIBLE:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_msgwin_messages_visible (self));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_SCRIBBLE_VISIBLE:
+		g_value_set_boolean (value, geany_dbus_interface_preferences_get_msgwin_scribble_visible (self));
+		break;
+		default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+		break;
 	}
 }
 
 
-static GVariant* geany_dbus_interface_prefs_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data) {
+static void geany_dbus_interface_preferences_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec) {
+	GeanyDBusInterfacePreferences * self;
+	self = GEANY_DBUS_INTERFACE_PREFERENCES (object);
+	switch (property_id) {
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_SYMBOL_VISIBLE:
+		geany_dbus_interface_preferences_set_sidebar_symbol_visible (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_OPENFILES_VISIBLE:
+		geany_dbus_interface_preferences_set_sidebar_openfiles_visible (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_EDITOR_FONT:
+		geany_dbus_interface_preferences_set_editor_font (self, g_value_get_string (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAGBAR_FONT:
+		geany_dbus_interface_preferences_set_tagbar_font (self, g_value_get_string (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_FONT:
+		geany_dbus_interface_preferences_set_msgwin_font (self, g_value_get_string (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_NOTEBOOK_TABS:
+		geany_dbus_interface_preferences_set_show_notebook_tabs (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_EDITOR:
+		geany_dbus_interface_preferences_set_tab_pos_editor (self, g_value_get_int (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_MSGWIN:
+		geany_dbus_interface_preferences_set_tab_pos_msgwin (self, g_value_get_int (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_TAB_POS_SIDEBAR:
+		geany_dbus_interface_preferences_set_tab_pos_sidebar (self, g_value_get_int (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_STATUSBAR_VISIBLE:
+		geany_dbus_interface_preferences_set_statusbar_visible (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SHOW_SYMBOL_LIST_EXPANDERS:
+		geany_dbus_interface_preferences_set_show_symbol_list_expanders (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_NOTEBOOK_DOUBLE_CLICK_HIDES_WIDGETS:
+		geany_dbus_interface_preferences_set_notebook_double_click_hides_widgets (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_HIGHLIGHTING_INVERT_ALL:
+		geany_dbus_interface_preferences_set_highlighting_invert_all (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_SIDEBAR_POS:
+		geany_dbus_interface_preferences_set_sidebar_pos (self, g_value_get_int (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_STATUS_VISIBLE:
+		geany_dbus_interface_preferences_set_msgwin_status_visible (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_COMPILER_VISIBLE:
+		geany_dbus_interface_preferences_set_msgwin_compiler_visible (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_MESSAGES_VISIBLE:
+		geany_dbus_interface_preferences_set_msgwin_messages_visible (self, g_value_get_boolean (value));
+		break;
+		case GEANY_DBUS_INTERFACE_PREFERENCES_MSGWIN_SCRIBBLE_VISIBLE:
+		geany_dbus_interface_preferences_set_msgwin_scribble_visible (self, g_value_get_boolean (value));
+		break;
+		default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+		break;
+	}
+}
+
+
+static void geany_dbus_interface_preferences_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data) {
 	gpointer* data;
 	gpointer object;
 	data = user_data;
 	object = data[0];
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_sidebar_symbol_visible (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_sidebar_openfiles_visible (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_editor_font (GeanyDBusInterfacePreferences* self) {
+	const char* result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_editor_font (self);
+	_reply = g_variant_new_string (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tagbar_font (GeanyDBusInterfacePreferences* self) {
+	const char* result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_tagbar_font (self);
+	_reply = g_variant_new_string (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_font (GeanyDBusInterfacePreferences* self) {
+	const char* result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_msgwin_font (self);
+	_reply = g_variant_new_string (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_show_notebook_tabs (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_show_notebook_tabs (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tab_pos_editor (GeanyDBusInterfacePreferences* self) {
+	gint result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_tab_pos_editor (self);
+	_reply = g_variant_new_int32 (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tab_pos_msgwin (GeanyDBusInterfacePreferences* self) {
+	gint result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_tab_pos_msgwin (self);
+	_reply = g_variant_new_int32 (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_tab_pos_sidebar (GeanyDBusInterfacePreferences* self) {
+	gint result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_tab_pos_sidebar (self);
+	_reply = g_variant_new_int32 (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_statusbar_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_statusbar_visible (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_show_symbol_list_expanders (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_notebook_double_click_hides_widgets (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_highlighting_invert_all (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_highlighting_invert_all (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_sidebar_pos (GeanyDBusInterfacePreferences* self) {
+	gint result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_sidebar_pos (self);
+	_reply = g_variant_new_int32 (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_status_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_msgwin_status_visible (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_msgwin_compiler_visible (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_messages_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_msgwin_messages_visible (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_interface_preferences_get_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self) {
+	gboolean result;
+	GVariant* _reply;
+	result = geany_dbus_interface_preferences_get_msgwin_scribble_visible (self);
+	_reply = g_variant_new_boolean (result);
+	return _reply;
+}
+
+
+static GVariant* geany_dbus_interface_preferences_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data) {
+	gpointer* data;
+	gpointer object;
+	data = user_data;
+	object = data[0];
+	if (strcmp (property_name, "SidebarSymbolVisible") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_sidebar_symbol_visible (object);
+	} else if (strcmp (property_name, "SidebarOpenfilesVisible") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_sidebar_openfiles_visible (object);
+	} else if (strcmp (property_name, "EditorFont") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_editor_font (object);
+	} else if (strcmp (property_name, "TagbarFont") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_tagbar_font (object);
+	} else if (strcmp (property_name, "MsgwinFont") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_msgwin_font (object);
+	} else if (strcmp (property_name, "ShowNotebookTabs") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_show_notebook_tabs (object);
+	} else if (strcmp (property_name, "TabPosEditor") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_tab_pos_editor (object);
+	} else if (strcmp (property_name, "TabPosMsgwin") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_tab_pos_msgwin (object);
+	} else if (strcmp (property_name, "TabPosSidebar") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_tab_pos_sidebar (object);
+	} else if (strcmp (property_name, "StatusbarVisible") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_statusbar_visible (object);
+	} else if (strcmp (property_name, "ShowSymbolListExpanders") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_show_symbol_list_expanders (object);
+	} else if (strcmp (property_name, "NotebookDoubleClickHidesWidgets") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_notebook_double_click_hides_widgets (object);
+	} else if (strcmp (property_name, "HighlightingInvertAll") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_highlighting_invert_all (object);
+	} else if (strcmp (property_name, "SidebarPos") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_sidebar_pos (object);
+	} else if (strcmp (property_name, "MsgwinStatusVisible") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_msgwin_status_visible (object);
+	} else if (strcmp (property_name, "MsgwinCompilerVisible") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_msgwin_compiler_visible (object);
+	} else if (strcmp (property_name, "MsgwinMessagesVisible") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_msgwin_messages_visible (object);
+	} else if (strcmp (property_name, "MsgwinScribbleVisible") == 0) {
+		return _dbus_geany_dbus_interface_preferences_get_msgwin_scribble_visible (object);
+	}
 	return NULL;
 }
 
 
-static gboolean geany_dbus_interface_prefs_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data) {
+static void _dbus_geany_dbus_interface_preferences_set_sidebar_symbol_visible (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_sidebar_symbol_visible (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_sidebar_openfiles_visible (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_sidebar_openfiles_visible (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_editor_font (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	char* value = NULL;
+	value = g_variant_dup_string (_value, NULL);
+	geany_dbus_interface_preferences_set_editor_font (self, value);
+	_g_free0 (value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_tagbar_font (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	char* value = NULL;
+	value = g_variant_dup_string (_value, NULL);
+	geany_dbus_interface_preferences_set_tagbar_font (self, value);
+	_g_free0 (value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_font (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	char* value = NULL;
+	value = g_variant_dup_string (_value, NULL);
+	geany_dbus_interface_preferences_set_msgwin_font (self, value);
+	_g_free0 (value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_show_notebook_tabs (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_show_notebook_tabs (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_tab_pos_editor (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gint value = 0;
+	value = g_variant_get_int32 (_value);
+	geany_dbus_interface_preferences_set_tab_pos_editor (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_tab_pos_msgwin (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gint value = 0;
+	value = g_variant_get_int32 (_value);
+	geany_dbus_interface_preferences_set_tab_pos_msgwin (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_tab_pos_sidebar (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gint value = 0;
+	value = g_variant_get_int32 (_value);
+	geany_dbus_interface_preferences_set_tab_pos_sidebar (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_statusbar_visible (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_statusbar_visible (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_show_symbol_list_expanders (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_show_symbol_list_expanders (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_notebook_double_click_hides_widgets (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_notebook_double_click_hides_widgets (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_highlighting_invert_all (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_highlighting_invert_all (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_sidebar_pos (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gint value = 0;
+	value = g_variant_get_int32 (_value);
+	geany_dbus_interface_preferences_set_sidebar_pos (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_status_visible (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_msgwin_status_visible (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_compiler_visible (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_msgwin_compiler_visible (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_messages_visible (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_msgwin_messages_visible (self, value);
+}
+
+
+static void _dbus_geany_dbus_interface_preferences_set_msgwin_scribble_visible (GeanyDBusInterfacePreferences* self, GVariant* _value) {
+	gboolean value = FALSE;
+	value = g_variant_get_boolean (_value);
+	geany_dbus_interface_preferences_set_msgwin_scribble_visible (self, value);
+}
+
+
+static gboolean geany_dbus_interface_preferences_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data) {
 	gpointer* data;
 	gpointer object;
 	data = user_data;
 	object = data[0];
+	if (strcmp (property_name, "SidebarSymbolVisible") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_sidebar_symbol_visible (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "SidebarOpenfilesVisible") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_sidebar_openfiles_visible (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "EditorFont") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_editor_font (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "TagbarFont") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_tagbar_font (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "MsgwinFont") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_msgwin_font (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "ShowNotebookTabs") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_show_notebook_tabs (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "TabPosEditor") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_tab_pos_editor (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "TabPosMsgwin") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_tab_pos_msgwin (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "TabPosSidebar") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_tab_pos_sidebar (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "StatusbarVisible") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_statusbar_visible (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "ShowSymbolListExpanders") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_show_symbol_list_expanders (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "NotebookDoubleClickHidesWidgets") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_notebook_double_click_hides_widgets (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "HighlightingInvertAll") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_highlighting_invert_all (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "SidebarPos") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_sidebar_pos (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "MsgwinStatusVisible") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_msgwin_status_visible (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "MsgwinCompilerVisible") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_msgwin_compiler_visible (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "MsgwinMessagesVisible") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_msgwin_messages_visible (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "MsgwinScribbleVisible") == 0) {
+		_dbus_geany_dbus_interface_preferences_set_msgwin_scribble_visible (object, value);
+		return TRUE;
+	}
 	return FALSE;
 }
 
 
-guint geany_dbus_interface_prefs_register_object (gpointer object, GDBusConnection* connection, const gchar* path, GError** error) {
+guint geany_dbus_interface_preferences_register_object (gpointer object, GDBusConnection* connection, const gchar* path, GError** error) {
 	guint result;
 	gpointer *data;
 	data = g_new (gpointer, 3);
 	data[0] = g_object_ref (object);
 	data[1] = g_object_ref (connection);
 	data[2] = g_strdup (path);
-	result = g_dbus_connection_register_object (connection, path, &_geany_dbus_interface_prefs_dbus_interface_info, &_geany_dbus_interface_prefs_dbus_interface_vtable, data, _geany_dbus_interface_prefs_unregister_object, error);
+	result = g_dbus_connection_register_object (connection, path, &_geany_dbus_interface_preferences_dbus_interface_info, &_geany_dbus_interface_preferences_dbus_interface_vtable, data, _geany_dbus_interface_preferences_unregister_object, error);
 	if (!result) {
 		return 0;
 	}
@@ -1301,7 +1000,7 @@ guint geany_dbus_interface_prefs_register_object (gpointer object, GDBusConnecti
 }
 
 
-static void _geany_dbus_interface_prefs_unregister_object (gpointer user_data) {
+static void _geany_dbus_interface_preferences_unregister_object (gpointer user_data) {
 	gpointer* data;
 	data = user_data;
 	g_object_unref (data[0]);

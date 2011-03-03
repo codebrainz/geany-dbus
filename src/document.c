@@ -22,11 +22,14 @@
  * MA 02110-1301, USA.
  * 
  */
+/* todo: use { owned get {} } in properties */
 
 #include <glib.h>
 #include <glib-object.h>
 #include "dbus-plugin.h"
 #include <geanyplugin.h>
+#include <stdlib.h>
+#include <string.h>
 #include <gio/gio.h>
 
 #define _g_free0(var) (var = (g_free (var), NULL))
@@ -43,7 +46,7 @@ static gpointer geany_dbus_document_parent_class = NULL;
 enum  {
 	GEANY_DBUS_DOCUMENT_DUMMY_PROPERTY,
 	GEANY_DBUS_DOCUMENT_DBUS_INDEX,
-	GEANY_DBUS_DOCUMENT_NEEDS_SAVING,
+	GEANY_DBUS_DOCUMENT_HAS_CHANGED,
 	GEANY_DBUS_DOCUMENT_ENCODING,
 	GEANY_DBUS_DOCUMENT_FILE_NAME,
 	GEANY_DBUS_DOCUMENT_FILE_TYPE,
@@ -53,7 +56,8 @@ enum  {
 	GEANY_DBUS_DOCUMENT_IS_VALID,
 	GEANY_DBUS_DOCUMENT_IS_READ_ONLY,
 	GEANY_DBUS_DOCUMENT_REAL_PATH,
-	GEANY_DBUS_DOCUMENT_NOTEBOOK_PAGE
+	GEANY_DBUS_DOCUMENT_NOTEBOOK_PAGE,
+	GEANY_DBUS_DOCUMENT_STATUS_COLOR
 };
 guint geany_dbus_document_get_dbus_index (GeanyDBusDocument* self);
 void geany_dbus_document_set_dbus_index (GeanyDBusDocument* self, guint value);
@@ -61,8 +65,13 @@ static void geany_dbus_document_finalize (GObject* obj);
 static void geany_dbus_document_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void geany_dbus_document_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
 static void geany_dbus_document_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data);
+static void _dbus_geany_dbus_document_get_display_name (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation);
+static void _dbus_geany_dbus_document_reload (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation);
+static void _dbus_geany_dbus_document_save (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation);
+static void _dbus_geany_dbus_document_save_as (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation);
+static void _dbus_geany_dbus_document_close (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation);
 static GVariant* geany_dbus_document_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data);
-static GVariant* _dbus_geany_dbus_document_get_needs_saving (GeanyDBusDocument* self);
+static GVariant* _dbus_geany_dbus_document_get_has_changed (GeanyDBusDocument* self);
 static GVariant* _dbus_geany_dbus_document_get_encoding (GeanyDBusDocument* self);
 static GVariant* _dbus_geany_dbus_document_get_file_name (GeanyDBusDocument* self);
 static GVariant* _dbus_geany_dbus_document_get_file_type (GeanyDBusDocument* self);
@@ -73,10 +82,10 @@ static GVariant* _dbus_geany_dbus_document_get_is_valid (GeanyDBusDocument* self
 static GVariant* _dbus_geany_dbus_document_get_is_read_only (GeanyDBusDocument* self);
 static GVariant* _dbus_geany_dbus_document_get_real_path (GeanyDBusDocument* self);
 static GVariant* _dbus_geany_dbus_document_get_notebook_page (GeanyDBusDocument* self);
+static GVariant* _dbus_geany_dbus_document_get_status_color (GeanyDBusDocument* self);
 static gboolean geany_dbus_document_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data);
-static void _dbus_geany_dbus_document_set_needs_saving (GeanyDBusDocument* self, GVariant* _value);
+static void _dbus_geany_dbus_document_set_has_changed (GeanyDBusDocument* self, GVariant* _value);
 static void _dbus_geany_dbus_document_set_encoding (GeanyDBusDocument* self, GVariant* _value);
-static void _dbus_geany_dbus_document_set_is_read_only (GeanyDBusDocument* self, GVariant* _value);
 static void _dbus_geany_dbus_document_shown (GObject* _sender, gpointer* _data);
 static void _dbus_geany_dbus_document_before_close (GObject* _sender, gpointer* _data);
 static void _dbus_geany_dbus_document_before_save (GObject* _sender, gpointer* _data);
@@ -85,7 +94,28 @@ static void _dbus_geany_dbus_document_file_type_set (GObject* _sender, gpointer*
 static void _dbus_geany_dbus_document_update_editor_menu (GObject* _sender, gpointer* _data);
 static void _geany_dbus_document_unregister_object (gpointer user_data);
 
-static const GDBusMethodInfo * const _geany_dbus_document_dbus_method_info[] = {NULL};
+static const GDBusArgInfo _geany_dbus_document_dbus_arg_info_get_display_name_result = {-1, "result", "s"};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_get_display_name_in[] = {NULL};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_get_display_name_out[] = {&_geany_dbus_document_dbus_arg_info_get_display_name_result, NULL};
+static const GDBusMethodInfo _geany_dbus_document_dbus_method_info_get_display_name = {-1, "GetDisplayName", (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_get_display_name_in), (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_get_display_name_out)};
+static const GDBusArgInfo _geany_dbus_document_dbus_arg_info_reload_result = {-1, "result", "b"};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_reload_in[] = {NULL};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_reload_out[] = {&_geany_dbus_document_dbus_arg_info_reload_result, NULL};
+static const GDBusMethodInfo _geany_dbus_document_dbus_method_info_reload = {-1, "Reload", (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_reload_in), (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_reload_out)};
+static const GDBusArgInfo _geany_dbus_document_dbus_arg_info_save_result = {-1, "result", "b"};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_save_in[] = {NULL};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_save_out[] = {&_geany_dbus_document_dbus_arg_info_save_result, NULL};
+static const GDBusMethodInfo _geany_dbus_document_dbus_method_info_save = {-1, "Save", (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_save_in), (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_save_out)};
+static const GDBusArgInfo _geany_dbus_document_dbus_arg_info_save_as_new_filename = {-1, "new_filename", "s"};
+static const GDBusArgInfo _geany_dbus_document_dbus_arg_info_save_as_result = {-1, "result", "b"};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_save_as_in[] = {&_geany_dbus_document_dbus_arg_info_save_as_new_filename, NULL};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_save_as_out[] = {&_geany_dbus_document_dbus_arg_info_save_as_result, NULL};
+static const GDBusMethodInfo _geany_dbus_document_dbus_method_info_save_as = {-1, "SaveAs", (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_save_as_in), (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_save_as_out)};
+static const GDBusArgInfo _geany_dbus_document_dbus_arg_info_close_result = {-1, "result", "b"};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_close_in[] = {NULL};
+static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_close_out[] = {&_geany_dbus_document_dbus_arg_info_close_result, NULL};
+static const GDBusMethodInfo _geany_dbus_document_dbus_method_info_close = {-1, "Close", (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_close_in), (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_close_out)};
+static const GDBusMethodInfo * const _geany_dbus_document_dbus_method_info[] = {&_geany_dbus_document_dbus_method_info_get_display_name, &_geany_dbus_document_dbus_method_info_reload, &_geany_dbus_document_dbus_method_info_save, &_geany_dbus_document_dbus_method_info_save_as, &_geany_dbus_document_dbus_method_info_close, NULL};
 static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_shown[] = {NULL};
 static const GDBusSignalInfo _geany_dbus_document_dbus_signal_info_shown = {-1, "Shown", (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_shown)};
 static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_before_close[] = {NULL};
@@ -99,7 +129,7 @@ static const GDBusSignalInfo _geany_dbus_document_dbus_signal_info_file_type_set
 static const GDBusArgInfo * const _geany_dbus_document_dbus_arg_info_update_editor_menu[] = {NULL};
 static const GDBusSignalInfo _geany_dbus_document_dbus_signal_info_update_editor_menu = {-1, "UpdateEditorMenu", (GDBusArgInfo **) (&_geany_dbus_document_dbus_arg_info_update_editor_menu)};
 static const GDBusSignalInfo * const _geany_dbus_document_dbus_signal_info[] = {&_geany_dbus_document_dbus_signal_info_shown, &_geany_dbus_document_dbus_signal_info_before_close, &_geany_dbus_document_dbus_signal_info_before_save, &_geany_dbus_document_dbus_signal_info_saved, &_geany_dbus_document_dbus_signal_info_file_type_set, &_geany_dbus_document_dbus_signal_info_update_editor_menu, NULL};
-static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_needs_saving = {-1, "NeedsSaving", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_has_changed = {-1, "HasChanged", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_encoding = {-1, "Encoding", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_file_name = {-1, "FileName", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_file_type = {-1, "FileType", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
@@ -107,11 +137,12 @@ static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_has_bom =
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_has_tags = {-1, "HasTags", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_index = {-1, "Index", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_is_valid = {-1, "IsValid", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
-static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_is_read_only = {-1, "IsReadOnly", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_is_read_only = {-1, "IsReadOnly", "b", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_real_path = {-1, "RealPath", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
 static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_notebook_page = {-1, "NotebookPage", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
-static const GDBusPropertyInfo * const _geany_dbus_document_dbus_property_info[] = {&_geany_dbus_document_dbus_property_info_needs_saving, &_geany_dbus_document_dbus_property_info_encoding, &_geany_dbus_document_dbus_property_info_file_name, &_geany_dbus_document_dbus_property_info_file_type, &_geany_dbus_document_dbus_property_info_has_bom, &_geany_dbus_document_dbus_property_info_has_tags, &_geany_dbus_document_dbus_property_info_index, &_geany_dbus_document_dbus_property_info_is_valid, &_geany_dbus_document_dbus_property_info_is_read_only, &_geany_dbus_document_dbus_property_info_real_path, &_geany_dbus_document_dbus_property_info_notebook_page, NULL};
-static const GDBusInterfaceInfo _geany_dbus_document_dbus_interface_info = {-1, "org.geany.DBus.Document", (GDBusMethodInfo **) (&_geany_dbus_document_dbus_method_info), (GDBusSignalInfo **) (&_geany_dbus_document_dbus_signal_info), (GDBusPropertyInfo **) (&_geany_dbus_document_dbus_property_info)};
+static const GDBusPropertyInfo _geany_dbus_document_dbus_property_info_status_color = {-1, "StatusColor", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE};
+static const GDBusPropertyInfo * const _geany_dbus_document_dbus_property_info[] = {&_geany_dbus_document_dbus_property_info_has_changed, &_geany_dbus_document_dbus_property_info_encoding, &_geany_dbus_document_dbus_property_info_file_name, &_geany_dbus_document_dbus_property_info_file_type, &_geany_dbus_document_dbus_property_info_has_bom, &_geany_dbus_document_dbus_property_info_has_tags, &_geany_dbus_document_dbus_property_info_index, &_geany_dbus_document_dbus_property_info_is_valid, &_geany_dbus_document_dbus_property_info_is_read_only, &_geany_dbus_document_dbus_property_info_real_path, &_geany_dbus_document_dbus_property_info_notebook_page, &_geany_dbus_document_dbus_property_info_status_color, NULL};
+static const GDBusInterfaceInfo _geany_dbus_document_dbus_interface_info = {-1, "org.geany.DBus.Interfaces.Document", (GDBusMethodInfo **) (&_geany_dbus_document_dbus_method_info), (GDBusSignalInfo **) (&_geany_dbus_document_dbus_signal_info), (GDBusPropertyInfo **) (&_geany_dbus_document_dbus_property_info)};
 static const GDBusInterfaceVTable _geany_dbus_document_dbus_interface_vtable = {geany_dbus_document_dbus_interface_method_call, geany_dbus_document_dbus_interface_get_property, geany_dbus_document_dbus_interface_set_property};
 
 
@@ -126,6 +157,47 @@ GeanyDBusDocument* geany_dbus_document_construct (GType object_type, struct Gean
 
 GeanyDBusDocument* geany_dbus_document_new (struct GeanyDocument* doc) {
 	return geany_dbus_document_construct (GEANY_DBUS_TYPE_DOCUMENT, doc);
+}
+
+
+char* geany_dbus_document_get_display_name (GeanyDBusDocument* self) {
+	char* result = NULL;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = document_get_basename_for_display (self->priv->doc, -1);
+	return result;
+}
+
+
+gboolean geany_dbus_document_reload (GeanyDBusDocument* self) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = document_reload_file (self->priv->doc, NULL);
+	return result;
+}
+
+
+gboolean geany_dbus_document_save (GeanyDBusDocument* self) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = document_save_file (self->priv->doc, FALSE);
+	return result;
+}
+
+
+gboolean geany_dbus_document_save_as (GeanyDBusDocument* self, const char* new_filename) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (new_filename != NULL, FALSE);
+	result = geany_dbus_document_save_as (self, new_filename);
+	return result;
+}
+
+
+gboolean geany_dbus_document_close (GeanyDBusDocument* self) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = document_close (self->priv->doc);
+	return result;
 }
 
 
@@ -144,7 +216,7 @@ void geany_dbus_document_set_dbus_index (GeanyDBusDocument* self, guint value) {
 }
 
 
-static gboolean document_get_changed (struct GeanyDocument* self) {
+static gboolean __geany_vala_plugin_document_get_has_changed (struct GeanyDocument* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
 	result = self->changed;
@@ -152,28 +224,28 @@ static gboolean document_get_changed (struct GeanyDocument* self) {
 }
 
 
-static void _document_set_text_changed (struct GeanyDocument* self, gboolean value) {
+static void __geany_vala_plugin_document_set_has_changed (struct GeanyDocument* self, gboolean value) {
 	g_return_if_fail (self != NULL);
 	document_set_text_changed (self, value);
 }
 
 
-gboolean geany_dbus_document_get_needs_saving (GeanyDBusDocument* self) {
+gboolean geany_dbus_document_get_has_changed (GeanyDBusDocument* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	result = document_get_changed (self->priv->doc);
+	result = __geany_vala_plugin_document_get_has_changed (self->priv->doc);
 	return result;
 }
 
 
-void geany_dbus_document_set_needs_saving (GeanyDBusDocument* self, gboolean value) {
+void geany_dbus_document_set_has_changed (GeanyDBusDocument* self, gboolean value) {
 	g_return_if_fail (self != NULL);
-	_document_set_text_changed (self->priv->doc, value);
-	g_object_notify ((GObject *) self, "needs-saving");
+	__geany_vala_plugin_document_set_has_changed (self->priv->doc, value);
+	g_object_notify ((GObject *) self, "has-changed");
 }
 
 
-static const char* document_get_encoding (struct GeanyDocument* self) {
+static const char* __geany_vala_plugin_document_get_encoding (struct GeanyDocument* self) {
 	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = self->encoding;
@@ -181,7 +253,7 @@ static const char* document_get_encoding (struct GeanyDocument* self) {
 }
 
 
-static void _document_set_encoding (struct GeanyDocument* self, const char* value) {
+static void __geany_vala_plugin_document_set_encoding (struct GeanyDocument* self, const char* value) {
 	g_return_if_fail (self != NULL);
 	document_set_encoding (self, value);
 }
@@ -190,14 +262,14 @@ static void _document_set_encoding (struct GeanyDocument* self, const char* valu
 const char* geany_dbus_document_get_encoding (GeanyDBusDocument* self) {
 	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	result = document_get_encoding (self->priv->doc);
+	result = __geany_vala_plugin_document_get_encoding (self->priv->doc);
 	return result;
 }
 
 
 void geany_dbus_document_set_encoding (GeanyDBusDocument* self, const char* value) {
 	g_return_if_fail (self != NULL);
-	_document_set_encoding (self->priv->doc, value);
+	__geany_vala_plugin_document_set_encoding (self->priv->doc, value);
 	g_object_notify ((GObject *) self, "encoding");
 }
 
@@ -210,7 +282,7 @@ const char* geany_dbus_document_get_file_name (GeanyDBusDocument* self) {
 }
 
 
-static struct GeanyFiletype* document_get_file_type (struct GeanyDocument* self) {
+static struct GeanyFiletype* __geany_vala_plugin_document_get_file_type (struct GeanyDocument* self) {
 	struct GeanyFiletype* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = self->file_type;
@@ -218,7 +290,7 @@ static struct GeanyFiletype* document_get_file_type (struct GeanyDocument* self)
 }
 
 
-static void _document_set_filetype (struct GeanyDocument* self, struct GeanyFiletype* value) {
+static void __geany_vala_plugin_document_set_file_type (struct GeanyDocument* self, struct GeanyFiletype* value) {
 	g_return_if_fail (self != NULL);
 	document_set_filetype (self, value);
 }
@@ -227,12 +299,12 @@ static void _document_set_filetype (struct GeanyDocument* self, struct GeanyFile
 const char* geany_dbus_document_get_file_type (GeanyDBusDocument* self) {
 	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	result = document_get_file_type (self->priv->doc)->title;
+	result = __geany_vala_plugin_document_get_file_type (self->priv->doc)->title;
 	return result;
 }
 
 
-static gboolean document_get_has_bom (struct GeanyDocument* self) {
+static gboolean __geany_vala_plugin_document_get_has_bom (struct GeanyDocument* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
 	result = self->has_bom;
@@ -243,12 +315,12 @@ static gboolean document_get_has_bom (struct GeanyDocument* self) {
 gboolean geany_dbus_document_get_has_bom (GeanyDBusDocument* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	result = document_get_has_bom (self->priv->doc);
+	result = __geany_vala_plugin_document_get_has_bom (self->priv->doc);
 	return result;
 }
 
 
-static gboolean document_get_has_tags (struct GeanyDocument* self) {
+static gboolean __geany_vala_plugin_document_get_has_tags (struct GeanyDocument* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
 	result = self->has_tags;
@@ -259,12 +331,12 @@ static gboolean document_get_has_tags (struct GeanyDocument* self) {
 gboolean geany_dbus_document_get_has_tags (GeanyDBusDocument* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	result = document_get_has_tags (self->priv->doc);
+	result = __geany_vala_plugin_document_get_has_tags (self->priv->doc);
 	return result;
 }
 
 
-static gint document_get_index (struct GeanyDocument* self) {
+static gint __geany_vala_plugin_document_get_index (struct GeanyDocument* self) {
 	gint result;
 	g_return_val_if_fail (self != NULL, 0);
 	result = self->index;
@@ -275,7 +347,7 @@ static gint document_get_index (struct GeanyDocument* self) {
 gint geany_dbus_document_get_index (GeanyDBusDocument* self) {
 	gint result;
 	g_return_val_if_fail (self != NULL, 0);
-	result = document_get_index (self->priv->doc);
+	result = __geany_vala_plugin_document_get_index (self->priv->doc);
 	return result;
 }
 
@@ -288,22 +360,23 @@ gboolean geany_dbus_document_get_is_valid (GeanyDBusDocument* self) {
 }
 
 
-gboolean geany_dbus_document_get_is_read_only (GeanyDBusDocument* self) {
+static gboolean __geany_vala_plugin_document_get_is_read_only (struct GeanyDocument* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	result = self->priv->doc->readonly;
+	result = self->readonly;
 	return result;
 }
 
 
-void geany_dbus_document_set_is_read_only (GeanyDBusDocument* self, gboolean value) {
-	g_return_if_fail (self != NULL);
-	self->priv->doc->readonly = value;
-	g_object_notify ((GObject *) self, "is-read-only");
+gboolean geany_dbus_document_get_is_read_only (GeanyDBusDocument* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = __geany_vala_plugin_document_get_is_read_only (self->priv->doc);
+	return result;
 }
 
 
-static const char* document_get_real_path (struct GeanyDocument* self) {
+static const char* __geany_vala_plugin_document_get_real_path (struct GeanyDocument* self) {
 	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = self->real_path;
@@ -314,8 +387,13 @@ static const char* document_get_real_path (struct GeanyDocument* self) {
 const char* geany_dbus_document_get_real_path (GeanyDBusDocument* self) {
 	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	result = document_get_real_path (self->priv->doc);
-	return result;
+	if (__geany_vala_plugin_document_get_real_path (self->priv->doc) != NULL) {
+		result = __geany_vala_plugin_document_get_real_path (self->priv->doc);
+		return result;
+	} else {
+		result = "";
+		return result;
+	}
 }
 
 
@@ -327,6 +405,25 @@ gint geany_dbus_document_get_notebook_page (GeanyDBusDocument* self) {
 }
 
 
+char* geany_dbus_document_get_status_color (GeanyDBusDocument* self) {
+	char* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	if (document_get_status_color (self->priv->doc) != NULL) {
+		guchar r;
+		guchar g;
+		guchar b;
+		r = (guchar) ((*document_get_status_color (self->priv->doc)).red / 256);
+		g = (guchar) ((*document_get_status_color (self->priv->doc)).green / 256);
+		b = (guchar) ((*document_get_status_color (self->priv->doc)).blue / 256);
+		result = g_strdup_printf ("#%02X%02X%02X", (guint) r, (guint) g, (guint) b);
+		return result;
+	} else {
+		result = g_strdup ("");
+		return result;
+	}
+}
+
+
 static void geany_dbus_document_class_init (GeanyDBusDocumentClass * klass) {
 	geany_dbus_document_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_add_private (klass, sizeof (GeanyDBusDocumentPrivate));
@@ -334,7 +431,7 @@ static void geany_dbus_document_class_init (GeanyDBusDocumentClass * klass) {
 	G_OBJECT_CLASS (klass)->set_property = geany_dbus_document_set_property;
 	G_OBJECT_CLASS (klass)->finalize = geany_dbus_document_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_DBUS_INDEX, g_param_spec_uint ("dbus-index", "dbus-index", "dbus-index", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_NEEDS_SAVING, g_param_spec_boolean ("needs-saving", "needs-saving", "needs-saving", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_HAS_CHANGED, g_param_spec_boolean ("has-changed", "has-changed", "has-changed", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_ENCODING, g_param_spec_string ("encoding", "encoding", "encoding", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_FILE_NAME, g_param_spec_string ("file-name", "file-name", "file-name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_FILE_TYPE, g_param_spec_string ("file-type", "file-type", "file-type", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
@@ -342,9 +439,10 @@ static void geany_dbus_document_class_init (GeanyDBusDocumentClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_HAS_TAGS, g_param_spec_boolean ("has-tags", "has-tags", "has-tags", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_INDEX, g_param_spec_int ("index", "index", "index", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_IS_VALID, g_param_spec_boolean ("is-valid", "is-valid", "is-valid", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_IS_READ_ONLY, g_param_spec_boolean ("is-read-only", "is-read-only", "is-read-only", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_IS_READ_ONLY, g_param_spec_boolean ("is-read-only", "is-read-only", "is-read-only", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_REAL_PATH, g_param_spec_string ("real-path", "real-path", "real-path", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_NOTEBOOK_PAGE, g_param_spec_int ("notebook-page", "notebook-page", "notebook-page", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_DOCUMENT_STATUS_COLOR, g_param_spec_string ("status-color", "status-color", "status-color", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_signal_new ("shown", GEANY_DBUS_TYPE_DOCUMENT, G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 	g_signal_new ("before_close", GEANY_DBUS_TYPE_DOCUMENT, G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 	g_signal_new ("before_save", GEANY_DBUS_TYPE_DOCUMENT, G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
@@ -385,8 +483,8 @@ static void geany_dbus_document_get_property (GObject * object, guint property_i
 		case GEANY_DBUS_DOCUMENT_DBUS_INDEX:
 		g_value_set_uint (value, geany_dbus_document_get_dbus_index (self));
 		break;
-		case GEANY_DBUS_DOCUMENT_NEEDS_SAVING:
-		g_value_set_boolean (value, geany_dbus_document_get_needs_saving (self));
+		case GEANY_DBUS_DOCUMENT_HAS_CHANGED:
+		g_value_set_boolean (value, geany_dbus_document_get_has_changed (self));
 		break;
 		case GEANY_DBUS_DOCUMENT_ENCODING:
 		g_value_set_string (value, geany_dbus_document_get_encoding (self));
@@ -418,6 +516,9 @@ static void geany_dbus_document_get_property (GObject * object, guint property_i
 		case GEANY_DBUS_DOCUMENT_NOTEBOOK_PAGE:
 		g_value_set_int (value, geany_dbus_document_get_notebook_page (self));
 		break;
+		case GEANY_DBUS_DOCUMENT_STATUS_COLOR:
+		g_value_take_string (value, geany_dbus_document_get_status_color (self));
+		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
@@ -432,14 +533,11 @@ static void geany_dbus_document_set_property (GObject * object, guint property_i
 		case GEANY_DBUS_DOCUMENT_DBUS_INDEX:
 		geany_dbus_document_set_dbus_index (self, g_value_get_uint (value));
 		break;
-		case GEANY_DBUS_DOCUMENT_NEEDS_SAVING:
-		geany_dbus_document_set_needs_saving (self, g_value_get_boolean (value));
+		case GEANY_DBUS_DOCUMENT_HAS_CHANGED:
+		geany_dbus_document_set_has_changed (self, g_value_get_boolean (value));
 		break;
 		case GEANY_DBUS_DOCUMENT_ENCODING:
 		geany_dbus_document_set_encoding (self, g_value_get_string (value));
-		break;
-		case GEANY_DBUS_DOCUMENT_IS_READ_ONLY:
-		geany_dbus_document_set_is_read_only (self, g_value_get_boolean (value));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -448,18 +546,116 @@ static void geany_dbus_document_set_property (GObject * object, guint property_i
 }
 
 
+static void _dbus_geany_dbus_document_get_display_name (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	char* result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	result = geany_dbus_document_get_display_name (self);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
+	_g_free0 (result);
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
+static void _dbus_geany_dbus_document_reload (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	gboolean result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	result = geany_dbus_document_reload (self);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
+static void _dbus_geany_dbus_document_save (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	gboolean result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	result = geany_dbus_document_save (self);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
+static void _dbus_geany_dbus_document_save_as (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	char* new_filename = NULL;
+	GVariant* _tmp6_;
+	gboolean result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	_tmp6_ = g_variant_iter_next_value (&_arguments_iter);
+	new_filename = g_variant_dup_string (_tmp6_, NULL);
+	g_variant_unref (_tmp6_);
+	result = geany_dbus_document_save_as (self, new_filename);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	_g_free0 (new_filename);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
+static void _dbus_geany_dbus_document_close (GeanyDBusDocument* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
+	GError* error;
+	gboolean result;
+	GVariantIter _arguments_iter;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	error = NULL;
+	g_variant_iter_init (&_arguments_iter, parameters);
+	result = geany_dbus_document_close (self);
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_boolean (result));
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_method_invocation_return_value (invocation, _reply);
+}
+
+
 static void geany_dbus_document_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data) {
 	gpointer* data;
 	gpointer object;
 	data = user_data;
 	object = data[0];
+	if (strcmp (method_name, "GetDisplayName") == 0) {
+		_dbus_geany_dbus_document_get_display_name (object, parameters, invocation);
+	} else if (strcmp (method_name, "Reload") == 0) {
+		_dbus_geany_dbus_document_reload (object, parameters, invocation);
+	} else if (strcmp (method_name, "Save") == 0) {
+		_dbus_geany_dbus_document_save (object, parameters, invocation);
+	} else if (strcmp (method_name, "SaveAs") == 0) {
+		_dbus_geany_dbus_document_save_as (object, parameters, invocation);
+	} else if (strcmp (method_name, "Close") == 0) {
+		_dbus_geany_dbus_document_close (object, parameters, invocation);
+	}
 }
 
 
-static GVariant* _dbus_geany_dbus_document_get_needs_saving (GeanyDBusDocument* self) {
+static GVariant* _dbus_geany_dbus_document_get_has_changed (GeanyDBusDocument* self) {
 	gboolean result;
 	GVariant* _reply;
-	result = geany_dbus_document_get_needs_saving (self);
+	result = geany_dbus_document_get_has_changed (self);
 	_reply = g_variant_new_boolean (result);
 	return _reply;
 }
@@ -555,13 +751,23 @@ static GVariant* _dbus_geany_dbus_document_get_notebook_page (GeanyDBusDocument*
 }
 
 
+static GVariant* _dbus_geany_dbus_document_get_status_color (GeanyDBusDocument* self) {
+	char* result;
+	GVariant* _reply;
+	result = geany_dbus_document_get_status_color (self);
+	_reply = g_variant_new_string (result);
+	_g_free0 (result);
+	return _reply;
+}
+
+
 static GVariant* geany_dbus_document_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data) {
 	gpointer* data;
 	gpointer object;
 	data = user_data;
 	object = data[0];
-	if (strcmp (property_name, "NeedsSaving") == 0) {
-		return _dbus_geany_dbus_document_get_needs_saving (object);
+	if (strcmp (property_name, "HasChanged") == 0) {
+		return _dbus_geany_dbus_document_get_has_changed (object);
 	} else if (strcmp (property_name, "Encoding") == 0) {
 		return _dbus_geany_dbus_document_get_encoding (object);
 	} else if (strcmp (property_name, "FileName") == 0) {
@@ -582,15 +788,17 @@ static GVariant* geany_dbus_document_dbus_interface_get_property (GDBusConnectio
 		return _dbus_geany_dbus_document_get_real_path (object);
 	} else if (strcmp (property_name, "NotebookPage") == 0) {
 		return _dbus_geany_dbus_document_get_notebook_page (object);
+	} else if (strcmp (property_name, "StatusColor") == 0) {
+		return _dbus_geany_dbus_document_get_status_color (object);
 	}
 	return NULL;
 }
 
 
-static void _dbus_geany_dbus_document_set_needs_saving (GeanyDBusDocument* self, GVariant* _value) {
+static void _dbus_geany_dbus_document_set_has_changed (GeanyDBusDocument* self, GVariant* _value) {
 	gboolean value = FALSE;
 	value = g_variant_get_boolean (_value);
-	geany_dbus_document_set_needs_saving (self, value);
+	geany_dbus_document_set_has_changed (self, value);
 }
 
 
@@ -602,26 +810,16 @@ static void _dbus_geany_dbus_document_set_encoding (GeanyDBusDocument* self, GVa
 }
 
 
-static void _dbus_geany_dbus_document_set_is_read_only (GeanyDBusDocument* self, GVariant* _value) {
-	gboolean value = FALSE;
-	value = g_variant_get_boolean (_value);
-	geany_dbus_document_set_is_read_only (self, value);
-}
-
-
 static gboolean geany_dbus_document_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data) {
 	gpointer* data;
 	gpointer object;
 	data = user_data;
 	object = data[0];
-	if (strcmp (property_name, "NeedsSaving") == 0) {
-		_dbus_geany_dbus_document_set_needs_saving (object, value);
+	if (strcmp (property_name, "HasChanged") == 0) {
+		_dbus_geany_dbus_document_set_has_changed (object, value);
 		return TRUE;
 	} else if (strcmp (property_name, "Encoding") == 0) {
 		_dbus_geany_dbus_document_set_encoding (object, value);
-		return TRUE;
-	} else if (strcmp (property_name, "IsReadOnly") == 0) {
-		_dbus_geany_dbus_document_set_is_read_only (object, value);
 		return TRUE;
 	}
 	return FALSE;
@@ -637,7 +835,7 @@ static void _dbus_geany_dbus_document_shown (GObject* _sender, gpointer* _data) 
 	_path = _data[2];
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Document", "Shown", _arguments, NULL);
+	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Interfaces.Document", "Shown", _arguments, NULL);
 }
 
 
@@ -650,7 +848,7 @@ static void _dbus_geany_dbus_document_before_close (GObject* _sender, gpointer* 
 	_path = _data[2];
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Document", "BeforeClose", _arguments, NULL);
+	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Interfaces.Document", "BeforeClose", _arguments, NULL);
 }
 
 
@@ -663,7 +861,7 @@ static void _dbus_geany_dbus_document_before_save (GObject* _sender, gpointer* _
 	_path = _data[2];
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Document", "BeforeSave", _arguments, NULL);
+	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Interfaces.Document", "BeforeSave", _arguments, NULL);
 }
 
 
@@ -676,7 +874,7 @@ static void _dbus_geany_dbus_document_saved (GObject* _sender, gpointer* _data) 
 	_path = _data[2];
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Document", "Saved", _arguments, NULL);
+	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Interfaces.Document", "Saved", _arguments, NULL);
 }
 
 
@@ -689,7 +887,7 @@ static void _dbus_geany_dbus_document_file_type_set (GObject* _sender, gpointer*
 	_path = _data[2];
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Document", "FileTypeSet", _arguments, NULL);
+	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Interfaces.Document", "FileTypeSet", _arguments, NULL);
 }
 
 
@@ -702,7 +900,7 @@ static void _dbus_geany_dbus_document_update_editor_menu (GObject* _sender, gpoi
 	_path = _data[2];
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Document", "UpdateEditorMenu", _arguments, NULL);
+	g_dbus_connection_emit_signal (_connection, NULL, _path, "org.geany.DBus.Interfaces.Document", "UpdateEditorMenu", _arguments, NULL);
 }
 
 

@@ -6,8 +6,6 @@
 #include <glib-object.h>
 #include "dbus-plugin.h"
 #include <geanyplugin.h>
-#include <stdlib.h>
-#include <string.h>
 #include <gio/gio.h>
 
 #define _g_free0(var) (var = (g_free (var), NULL))
@@ -21,73 +19,46 @@ static gpointer geany_dbus_project_parent_class = NULL;
 
 #define GEANY_DBUS_PROJECT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GEANY_DBUS_TYPE_PROJECT, GeanyDBusProjectPrivate))
 enum  {
-	GEANY_DBUS_PROJECT_DUMMY_PROPERTY
+	GEANY_DBUS_PROJECT_DUMMY_PROPERTY,
+	GEANY_DBUS_PROJECT_NAME,
+	GEANY_DBUS_PROJECT_DESCRIPTION,
+	GEANY_DBUS_PROJECT_FILE_NAME,
+	GEANY_DBUS_PROJECT_BASE_PATH,
+	GEANY_DBUS_PROJECT_PROJECT_TYPE
 };
 static void geany_dbus_project_finalize (GObject* obj);
+static void geany_dbus_project_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
+static void geany_dbus_project_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
 static void geany_dbus_project_dbus_interface_method_call (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* method_name, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer user_data);
-static void _dbus_geany_dbus_project_get_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_set_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_get_description (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_set_description (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_get_file_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_set_file_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_get_base_path (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_set_base_path (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_get_project_type (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
-static void _dbus_geany_dbus_project_set_project_type (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation);
 static GVariant* geany_dbus_project_dbus_interface_get_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GError** error, gpointer user_data);
+static GVariant* _dbus_geany_dbus_project_get_name (GeanyDBusProject* self);
+static GVariant* _dbus_geany_dbus_project_get_description (GeanyDBusProject* self);
+static GVariant* _dbus_geany_dbus_project_get_file_name (GeanyDBusProject* self);
+static GVariant* _dbus_geany_dbus_project_get_base_path (GeanyDBusProject* self);
+static GVariant* _dbus_geany_dbus_project_get_project_type (GeanyDBusProject* self);
 static gboolean geany_dbus_project_dbus_interface_set_property (GDBusConnection* connection, const gchar* sender, const gchar* object_path, const gchar* interface_name, const gchar* property_name, GVariant* value, GError** error, gpointer user_data);
+static void _dbus_geany_dbus_project_set_name (GeanyDBusProject* self, GVariant* _value);
+static void _dbus_geany_dbus_project_set_description (GeanyDBusProject* self, GVariant* _value);
+static void _dbus_geany_dbus_project_set_file_name (GeanyDBusProject* self, GVariant* _value);
+static void _dbus_geany_dbus_project_set_base_path (GeanyDBusProject* self, GVariant* _value);
+static void _dbus_geany_dbus_project_set_project_type (GeanyDBusProject* self, GVariant* _value);
 static void _geany_dbus_project_unregister_object (gpointer user_data);
 
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_get_name_result = {-1, "result", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_name_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_name_out[] = {&_geany_dbus_project_dbus_arg_info_get_name_result, NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_get_name = {-1, "GetName", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_name_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_name_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_set_name_val = {-1, "val", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_name_in[] = {&_geany_dbus_project_dbus_arg_info_set_name_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_name_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_set_name = {-1, "SetName", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_name_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_name_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_get_description_result = {-1, "result", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_description_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_description_out[] = {&_geany_dbus_project_dbus_arg_info_get_description_result, NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_get_description = {-1, "GetDescription", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_description_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_description_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_set_description_val = {-1, "val", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_description_in[] = {&_geany_dbus_project_dbus_arg_info_set_description_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_description_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_set_description = {-1, "SetDescription", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_description_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_description_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_get_file_name_result = {-1, "result", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_file_name_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_file_name_out[] = {&_geany_dbus_project_dbus_arg_info_get_file_name_result, NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_get_file_name = {-1, "GetFileName", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_file_name_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_file_name_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_set_file_name_val = {-1, "val", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_file_name_in[] = {&_geany_dbus_project_dbus_arg_info_set_file_name_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_file_name_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_set_file_name = {-1, "SetFileName", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_file_name_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_file_name_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_get_base_path_result = {-1, "result", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_base_path_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_base_path_out[] = {&_geany_dbus_project_dbus_arg_info_get_base_path_result, NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_get_base_path = {-1, "GetBasePath", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_base_path_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_base_path_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_set_base_path_val = {-1, "val", "s"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_base_path_in[] = {&_geany_dbus_project_dbus_arg_info_set_base_path_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_base_path_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_set_base_path = {-1, "SetBasePath", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_base_path_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_base_path_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_get_project_type_result = {-1, "result", "i"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_project_type_in[] = {NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_get_project_type_out[] = {&_geany_dbus_project_dbus_arg_info_get_project_type_result, NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_get_project_type = {-1, "GetProjectType", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_project_type_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_get_project_type_out)};
-static const GDBusArgInfo _geany_dbus_project_dbus_arg_info_set_project_type_val = {-1, "val", "i"};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_project_type_in[] = {&_geany_dbus_project_dbus_arg_info_set_project_type_val, NULL};
-static const GDBusArgInfo * const _geany_dbus_project_dbus_arg_info_set_project_type_out[] = {NULL};
-static const GDBusMethodInfo _geany_dbus_project_dbus_method_info_set_project_type = {-1, "SetProjectType", (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_project_type_in), (GDBusArgInfo **) (&_geany_dbus_project_dbus_arg_info_set_project_type_out)};
-static const GDBusMethodInfo * const _geany_dbus_project_dbus_method_info[] = {&_geany_dbus_project_dbus_method_info_get_name, &_geany_dbus_project_dbus_method_info_set_name, &_geany_dbus_project_dbus_method_info_get_description, &_geany_dbus_project_dbus_method_info_set_description, &_geany_dbus_project_dbus_method_info_get_file_name, &_geany_dbus_project_dbus_method_info_set_file_name, &_geany_dbus_project_dbus_method_info_get_base_path, &_geany_dbus_project_dbus_method_info_set_base_path, &_geany_dbus_project_dbus_method_info_get_project_type, &_geany_dbus_project_dbus_method_info_set_project_type, NULL};
+static const GDBusMethodInfo * const _geany_dbus_project_dbus_method_info[] = {NULL};
 static const GDBusSignalInfo * const _geany_dbus_project_dbus_signal_info[] = {NULL};
-static const GDBusPropertyInfo * const _geany_dbus_project_dbus_property_info[] = {NULL};
-static const GDBusInterfaceInfo _geany_dbus_project_dbus_interface_info = {-1, "org.geany.DBus.Project", (GDBusMethodInfo **) (&_geany_dbus_project_dbus_method_info), (GDBusSignalInfo **) (&_geany_dbus_project_dbus_signal_info), (GDBusPropertyInfo **) (&_geany_dbus_project_dbus_property_info)};
+static const GDBusPropertyInfo _geany_dbus_project_dbus_property_info_name = {-1, "Name", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_project_dbus_property_info_description = {-1, "Description", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_project_dbus_property_info_file_name = {-1, "FileName", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_project_dbus_property_info_base_path = {-1, "BasePath", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo _geany_dbus_project_dbus_property_info_project_type = {-1, "ProjectType", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE};
+static const GDBusPropertyInfo * const _geany_dbus_project_dbus_property_info[] = {&_geany_dbus_project_dbus_property_info_name, &_geany_dbus_project_dbus_property_info_description, &_geany_dbus_project_dbus_property_info_file_name, &_geany_dbus_project_dbus_property_info_base_path, &_geany_dbus_project_dbus_property_info_project_type, NULL};
+static const GDBusInterfaceInfo _geany_dbus_project_dbus_interface_info = {-1, "org.geany.DBus.Interfaces.Project", (GDBusMethodInfo **) (&_geany_dbus_project_dbus_method_info), (GDBusSignalInfo **) (&_geany_dbus_project_dbus_signal_info), (GDBusPropertyInfo **) (&_geany_dbus_project_dbus_property_info)};
 static const GDBusInterfaceVTable _geany_dbus_project_dbus_interface_vtable = {geany_dbus_project_dbus_interface_method_call, geany_dbus_project_dbus_interface_get_property, geany_dbus_project_dbus_interface_set_property};
 
 
 GeanyDBusProject* geany_dbus_project_construct (GType object_type, GeanyProject* proj) {
 	GeanyDBusProject * self;
+	g_return_val_if_fail (proj != NULL, NULL);
 	self = (GeanyDBusProject*) g_object_new (object_type, NULL);
 	self->priv->proj = proj;
 	return self;
@@ -100,97 +71,95 @@ GeanyDBusProject* geany_dbus_project_new (GeanyProject* proj) {
 
 
 const char* geany_dbus_project_get_name (GeanyDBusProject* self) {
-	const char* result = NULL;
+	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (self->priv->proj != NULL, "");
 	result = self->priv->proj->name;
 	return result;
 }
 
 
-void geany_dbus_project_set_name (GeanyDBusProject* self, const char* val) {
+void geany_dbus_project_set_name (GeanyDBusProject* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (val != NULL);
-	g_return_if_fail (self->priv->proj != NULL);
-	self->priv->proj->name = (_tmp0_ = g_strdup (val), _g_free0 (self->priv->proj->name), _tmp0_);
+	self->priv->proj->name = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->proj->name), _tmp0_);
+	g_object_notify ((GObject *) self, "name");
 }
 
 
 const char* geany_dbus_project_get_description (GeanyDBusProject* self) {
-	const char* result = NULL;
+	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (self->priv->proj != NULL, "");
 	result = self->priv->proj->description;
 	return result;
 }
 
 
-void geany_dbus_project_set_description (GeanyDBusProject* self, const char* val) {
+void geany_dbus_project_set_description (GeanyDBusProject* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (val != NULL);
-	g_return_if_fail (self->priv->proj != NULL);
-	self->priv->proj->description = (_tmp0_ = g_strdup (val), _g_free0 (self->priv->proj->description), _tmp0_);
+	self->priv->proj->description = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->proj->description), _tmp0_);
+	g_object_notify ((GObject *) self, "description");
 }
 
 
 const char* geany_dbus_project_get_file_name (GeanyDBusProject* self) {
-	const char* result = NULL;
+	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (self->priv->proj != NULL, "");
 	result = self->priv->proj->file_name;
 	return result;
 }
 
 
-void geany_dbus_project_set_file_name (GeanyDBusProject* self, const char* val) {
+void geany_dbus_project_set_file_name (GeanyDBusProject* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (val != NULL);
-	g_return_if_fail (self->priv->proj != NULL);
-	self->priv->proj->file_name = (_tmp0_ = g_strdup (val), _g_free0 (self->priv->proj->file_name), _tmp0_);
+	self->priv->proj->file_name = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->proj->file_name), _tmp0_);
+	g_object_notify ((GObject *) self, "file-name");
 }
 
 
 const char* geany_dbus_project_get_base_path (GeanyDBusProject* self) {
-	const char* result = NULL;
+	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (self->priv->proj != NULL, "");
 	result = self->priv->proj->base_path;
 	return result;
 }
 
 
-void geany_dbus_project_set_base_path (GeanyDBusProject* self, const char* val) {
+void geany_dbus_project_set_base_path (GeanyDBusProject* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (val != NULL);
-	g_return_if_fail (self->priv->proj != NULL);
-	self->priv->proj->base_path = (_tmp0_ = g_strdup (val), _g_free0 (self->priv->proj->base_path), _tmp0_);
+	self->priv->proj->base_path = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->proj->base_path), _tmp0_);
+	g_object_notify ((GObject *) self, "base-path");
 }
 
 
 gint geany_dbus_project_get_project_type (GeanyDBusProject* self) {
-	gint result = 0;
+	gint result;
 	g_return_val_if_fail (self != NULL, 0);
-	g_return_val_if_fail (self->priv->proj != NULL, -1);
 	result = self->priv->proj->type;
 	return result;
 }
 
 
-void geany_dbus_project_set_project_type (GeanyDBusProject* self, gint val) {
+void geany_dbus_project_set_project_type (GeanyDBusProject* self, gint value) {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->proj != NULL);
-	self->priv->proj->type = val;
+	self->priv->proj->type = value;
+	g_object_notify ((GObject *) self, "project-type");
 }
 
 
 static void geany_dbus_project_class_init (GeanyDBusProjectClass * klass) {
 	geany_dbus_project_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_add_private (klass, sizeof (GeanyDBusProjectPrivate));
+	G_OBJECT_CLASS (klass)->get_property = geany_dbus_project_get_property;
+	G_OBJECT_CLASS (klass)->set_property = geany_dbus_project_set_property;
 	G_OBJECT_CLASS (klass)->finalize = geany_dbus_project_finalize;
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_PROJECT_NAME, g_param_spec_string ("name", "name", "name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_PROJECT_DESCRIPTION, g_param_spec_string ("description", "description", "description", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_PROJECT_FILE_NAME, g_param_spec_string ("file-name", "file-name", "file-name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_PROJECT_BASE_PATH, g_param_spec_string ("base-path", "base-path", "base-path", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_PROJECT_PROJECT_TYPE, g_param_spec_int ("project-type", "project-type", "project-type", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 }
 
 
@@ -218,182 +187,55 @@ GType geany_dbus_project_get_type (void) {
 }
 
 
-static void _dbus_geany_dbus_project_get_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	const char* result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_project_get_name (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
+static void geany_dbus_project_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec) {
+	GeanyDBusProject * self;
+	self = GEANY_DBUS_PROJECT (object);
+	switch (property_id) {
+		case GEANY_DBUS_PROJECT_NAME:
+		g_value_set_string (value, geany_dbus_project_get_name (self));
+		break;
+		case GEANY_DBUS_PROJECT_DESCRIPTION:
+		g_value_set_string (value, geany_dbus_project_get_description (self));
+		break;
+		case GEANY_DBUS_PROJECT_FILE_NAME:
+		g_value_set_string (value, geany_dbus_project_get_file_name (self));
+		break;
+		case GEANY_DBUS_PROJECT_BASE_PATH:
+		g_value_set_string (value, geany_dbus_project_get_base_path (self));
+		break;
+		case GEANY_DBUS_PROJECT_PROJECT_TYPE:
+		g_value_set_int (value, geany_dbus_project_get_project_type (self));
+		break;
+		default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+		break;
+	}
 }
 
 
-static void _dbus_geany_dbus_project_set_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	char* val = NULL;
-	GVariant* _tmp23_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp23_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp23_, NULL);
-	g_variant_unref (_tmp23_);
-	geany_dbus_project_set_name (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_g_free0 (val);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_get_description (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	const char* result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_project_get_description (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_set_description (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	char* val = NULL;
-	GVariant* _tmp24_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp24_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp24_, NULL);
-	g_variant_unref (_tmp24_);
-	geany_dbus_project_set_description (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_g_free0 (val);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_get_file_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	const char* result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_project_get_file_name (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_set_file_name (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	char* val = NULL;
-	GVariant* _tmp25_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp25_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp25_, NULL);
-	g_variant_unref (_tmp25_);
-	geany_dbus_project_set_file_name (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_g_free0 (val);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_get_base_path (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	const char* result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_project_get_base_path (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_set_base_path (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	char* val = NULL;
-	GVariant* _tmp26_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp26_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_dup_string (_tmp26_, NULL);
-	g_variant_unref (_tmp26_);
-	geany_dbus_project_set_base_path (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_g_free0 (val);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_get_project_type (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint result;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	result = geany_dbus_project_get_project_type (self);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
-}
-
-
-static void _dbus_geany_dbus_project_set_project_type (GeanyDBusProject* self, GVariant* parameters, GDBusMethodInvocation* invocation) {
-	GError* error;
-	gint val = 0;
-	GVariant* _tmp27_;
-	GVariantIter _arguments_iter;
-	GVariant* _reply;
-	GVariantBuilder _reply_builder;
-	error = NULL;
-	g_variant_iter_init (&_arguments_iter, parameters);
-	_tmp27_ = g_variant_iter_next_value (&_arguments_iter);
-	val = g_variant_get_int32 (_tmp27_);
-	g_variant_unref (_tmp27_);
-	geany_dbus_project_set_project_type (self, val);
-	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
-	_reply = g_variant_builder_end (&_reply_builder);
-	g_dbus_method_invocation_return_value (invocation, _reply);
+static void geany_dbus_project_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec) {
+	GeanyDBusProject * self;
+	self = GEANY_DBUS_PROJECT (object);
+	switch (property_id) {
+		case GEANY_DBUS_PROJECT_NAME:
+		geany_dbus_project_set_name (self, g_value_get_string (value));
+		break;
+		case GEANY_DBUS_PROJECT_DESCRIPTION:
+		geany_dbus_project_set_description (self, g_value_get_string (value));
+		break;
+		case GEANY_DBUS_PROJECT_FILE_NAME:
+		geany_dbus_project_set_file_name (self, g_value_get_string (value));
+		break;
+		case GEANY_DBUS_PROJECT_BASE_PATH:
+		geany_dbus_project_set_base_path (self, g_value_get_string (value));
+		break;
+		case GEANY_DBUS_PROJECT_PROJECT_TYPE:
+		geany_dbus_project_set_project_type (self, g_value_get_int (value));
+		break;
+		default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+		break;
+	}
 }
 
 
@@ -402,27 +244,51 @@ static void geany_dbus_project_dbus_interface_method_call (GDBusConnection* conn
 	gpointer object;
 	data = user_data;
 	object = data[0];
-	if (strcmp (method_name, "GetName") == 0) {
-		_dbus_geany_dbus_project_get_name (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetName") == 0) {
-		_dbus_geany_dbus_project_set_name (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetDescription") == 0) {
-		_dbus_geany_dbus_project_get_description (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetDescription") == 0) {
-		_dbus_geany_dbus_project_set_description (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetFileName") == 0) {
-		_dbus_geany_dbus_project_get_file_name (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetFileName") == 0) {
-		_dbus_geany_dbus_project_set_file_name (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetBasePath") == 0) {
-		_dbus_geany_dbus_project_get_base_path (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetBasePath") == 0) {
-		_dbus_geany_dbus_project_set_base_path (object, parameters, invocation);
-	} else if (strcmp (method_name, "GetProjectType") == 0) {
-		_dbus_geany_dbus_project_get_project_type (object, parameters, invocation);
-	} else if (strcmp (method_name, "SetProjectType") == 0) {
-		_dbus_geany_dbus_project_set_project_type (object, parameters, invocation);
-	}
+}
+
+
+static GVariant* _dbus_geany_dbus_project_get_name (GeanyDBusProject* self) {
+	const char* result;
+	GVariant* _reply;
+	result = geany_dbus_project_get_name (self);
+	_reply = g_variant_new_string (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_project_get_description (GeanyDBusProject* self) {
+	const char* result;
+	GVariant* _reply;
+	result = geany_dbus_project_get_description (self);
+	_reply = g_variant_new_string (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_project_get_file_name (GeanyDBusProject* self) {
+	const char* result;
+	GVariant* _reply;
+	result = geany_dbus_project_get_file_name (self);
+	_reply = g_variant_new_string (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_project_get_base_path (GeanyDBusProject* self) {
+	const char* result;
+	GVariant* _reply;
+	result = geany_dbus_project_get_base_path (self);
+	_reply = g_variant_new_string (result);
+	return _reply;
+}
+
+
+static GVariant* _dbus_geany_dbus_project_get_project_type (GeanyDBusProject* self) {
+	gint result;
+	GVariant* _reply;
+	result = geany_dbus_project_get_project_type (self);
+	_reply = g_variant_new_int32 (result);
+	return _reply;
 }
 
 
@@ -431,7 +297,57 @@ static GVariant* geany_dbus_project_dbus_interface_get_property (GDBusConnection
 	gpointer object;
 	data = user_data;
 	object = data[0];
+	if (strcmp (property_name, "Name") == 0) {
+		return _dbus_geany_dbus_project_get_name (object);
+	} else if (strcmp (property_name, "Description") == 0) {
+		return _dbus_geany_dbus_project_get_description (object);
+	} else if (strcmp (property_name, "FileName") == 0) {
+		return _dbus_geany_dbus_project_get_file_name (object);
+	} else if (strcmp (property_name, "BasePath") == 0) {
+		return _dbus_geany_dbus_project_get_base_path (object);
+	} else if (strcmp (property_name, "ProjectType") == 0) {
+		return _dbus_geany_dbus_project_get_project_type (object);
+	}
 	return NULL;
+}
+
+
+static void _dbus_geany_dbus_project_set_name (GeanyDBusProject* self, GVariant* _value) {
+	char* value = NULL;
+	value = g_variant_dup_string (_value, NULL);
+	geany_dbus_project_set_name (self, value);
+	_g_free0 (value);
+}
+
+
+static void _dbus_geany_dbus_project_set_description (GeanyDBusProject* self, GVariant* _value) {
+	char* value = NULL;
+	value = g_variant_dup_string (_value, NULL);
+	geany_dbus_project_set_description (self, value);
+	_g_free0 (value);
+}
+
+
+static void _dbus_geany_dbus_project_set_file_name (GeanyDBusProject* self, GVariant* _value) {
+	char* value = NULL;
+	value = g_variant_dup_string (_value, NULL);
+	geany_dbus_project_set_file_name (self, value);
+	_g_free0 (value);
+}
+
+
+static void _dbus_geany_dbus_project_set_base_path (GeanyDBusProject* self, GVariant* _value) {
+	char* value = NULL;
+	value = g_variant_dup_string (_value, NULL);
+	geany_dbus_project_set_base_path (self, value);
+	_g_free0 (value);
+}
+
+
+static void _dbus_geany_dbus_project_set_project_type (GeanyDBusProject* self, GVariant* _value) {
+	gint value = 0;
+	value = g_variant_get_int32 (_value);
+	geany_dbus_project_set_project_type (self, value);
 }
 
 
@@ -440,6 +356,22 @@ static gboolean geany_dbus_project_dbus_interface_set_property (GDBusConnection*
 	gpointer object;
 	data = user_data;
 	object = data[0];
+	if (strcmp (property_name, "Name") == 0) {
+		_dbus_geany_dbus_project_set_name (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "Description") == 0) {
+		_dbus_geany_dbus_project_set_description (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "FileName") == 0) {
+		_dbus_geany_dbus_project_set_file_name (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "BasePath") == 0) {
+		_dbus_geany_dbus_project_set_base_path (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "ProjectType") == 0) {
+		_dbus_geany_dbus_project_set_project_type (object, value);
+		return TRUE;
+	}
 	return FALSE;
 }
 

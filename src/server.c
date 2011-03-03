@@ -21,7 +21,7 @@ struct _GeanyDBusServerPrivate {
 	GeanyData* data;
 	GeanyFunctions* functions;
 	GeanyDBusApplication* _application;
-	GeanyDBusInterfacePrefs* _interface_prefs;
+	GeanyDBusInterfacePreferences* _interface_prefs;
 	GeanyDBusProject* _project;
 	guint bus_id;
 	guint* registered_objects;
@@ -75,7 +75,7 @@ static void _geany_dbus_server_on_bus_name_lost_gbus_name_lost_callback (GDBusCo
 GeanyDBusServer* geany_dbus_server_construct (GType object_type, GeanyPlugin* plugin, GeanyData* data, GeanyFunctions* functions) {
 	GeanyDBusServer * self;
 	GeanyDBusApplication* _tmp0_;
-	GeanyDBusInterfacePrefs* _tmp1_;
+	GeanyDBusInterfacePreferences* _tmp1_;
 	GeanyDBusProject* _tmp2_;
 	guint* _tmp3_ = NULL;
 	guint* _tmp4_;
@@ -89,7 +89,7 @@ GeanyDBusServer* geany_dbus_server_construct (GType object_type, GeanyPlugin* pl
 	self->priv->functions = functions;
 	geany_dbus_server_set_application (self, _tmp0_ = geany_dbus_application_new (data->app));
 	_g_object_unref0 (_tmp0_);
-	geany_dbus_server_set_interface_prefs (self, _tmp1_ = geany_dbus_interface_prefs_new (data->interface_prefs));
+	geany_dbus_server_set_interface_prefs (self, _tmp1_ = geany_dbus_interface_preferences_new (data->interface_prefs));
 	_g_object_unref0 (_tmp1_);
 	geany_dbus_server_set_project (self, _tmp2_ = geany_dbus_project_new (data->app->project));
 	_g_object_unref0 (_tmp2_);
@@ -203,7 +203,7 @@ static void geany_dbus_server_on_bus_acquired (GeanyDBusServer* self, GDBusConne
 			return;
 		}
 		_vala_array_add2 (&self->priv->registered_objects, &self->priv->registered_objects_length1, &self->priv->_registered_objects_size_, _tmp1_);
-		_tmp2_ = geany_dbus_interface_prefs_register_object (self->priv->_interface_prefs, conn, "/org/geany/DBus/UI/Preferences", &_inner_error_);
+		_tmp2_ = geany_dbus_interface_preferences_register_object (self->priv->_interface_prefs, conn, "/org/geany/DBus/UI/Preferences", &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if (_inner_error_->domain == G_IO_ERROR) {
 				goto __catch0_g_io_error;
@@ -250,7 +250,7 @@ static void geany_dbus_server_on_bus_name_lost (GeanyDBusServer* self, GDBusConn
 }
 
 
-static gint document_get_index (struct GeanyDocument* self) {
+static gint __geany_vala_plugin_document_get_index (struct GeanyDocument* self) {
 	gint result;
 	g_return_val_if_fail (self != NULL, 0);
 	result = self->index;
@@ -270,7 +270,7 @@ void geany_dbus_server_on_document_open_new (GObject* object, struct GeanyDocume
 		char* _tmp0_;
 		guint _tmp1_;
 		obj_path = NULL;
-		obj_path = (_tmp0_ = g_strdup_printf ("/org/geany/DBus/Documents/%d", document_get_index (doc)), _g_free0 (obj_path), _tmp0_);
+		obj_path = (_tmp0_ = g_strdup_printf ("/org/geany/DBus/Documents/%d", __geany_vala_plugin_document_get_index (doc)), _g_free0 (obj_path), _tmp0_);
 		_tmp1_ = geany_dbus_document_register_object (dbus_doc, self->priv->conn, obj_path, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			_g_free0 (obj_path);
@@ -334,7 +334,7 @@ void geany_dbus_server_on_document_close (GObject* object, struct GeanyDocument*
 					break;
 				}
 				dbus_doc = (GeanyDBusDocument*) gee_abstract_list_get ((GeeAbstractList*) self->priv->registered_documents, i);
-				if (geany_dbus_document_get_index (dbus_doc) == document_get_index (doc)) {
+				if (geany_dbus_document_get_index (dbus_doc) == __geany_vala_plugin_document_get_index (doc)) {
 					g_signal_emit_by_name (dbus_doc, "before-close");
 					if (g_dbus_connection_unregister_object (self->priv->conn, geany_dbus_document_get_dbus_index (dbus_doc))) {
 						GeanyDBusDocument* _tmp1_;
@@ -372,7 +372,7 @@ void geany_dbus_server_on_document_save (GObject* object, struct GeanyDocument* 
 					break;
 				}
 				dbus_doc = (GeanyDBusDocument*) gee_abstract_list_get ((GeeAbstractList*) self->priv->registered_documents, i);
-				if (geany_dbus_document_get_index (dbus_doc) == document_get_index (doc)) {
+				if (geany_dbus_document_get_index (dbus_doc) == __geany_vala_plugin_document_get_index (doc)) {
 					g_signal_emit_by_name (dbus_doc, "saved");
 				}
 				_g_object_unref0 (dbus_doc);
@@ -402,7 +402,7 @@ void geany_dbus_server_on_document_before_save (GObject* object, struct GeanyDoc
 					break;
 				}
 				dbus_doc = (GeanyDBusDocument*) gee_abstract_list_get ((GeeAbstractList*) self->priv->registered_documents, i);
-				if (geany_dbus_document_get_index (dbus_doc) == document_get_index (doc)) {
+				if (geany_dbus_document_get_index (dbus_doc) == __geany_vala_plugin_document_get_index (doc)) {
 					g_signal_emit_by_name (dbus_doc, "before-save");
 				}
 				_g_object_unref0 (dbus_doc);
@@ -433,16 +433,16 @@ void geany_dbus_server_set_application (GeanyDBusServer* self, GeanyDBusApplicat
 }
 
 
-GeanyDBusInterfacePrefs* geany_dbus_server_get_interface_prefs (GeanyDBusServer* self) {
-	GeanyDBusInterfacePrefs* result;
+GeanyDBusInterfacePreferences* geany_dbus_server_get_interface_prefs (GeanyDBusServer* self) {
+	GeanyDBusInterfacePreferences* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = self->priv->_interface_prefs;
 	return result;
 }
 
 
-void geany_dbus_server_set_interface_prefs (GeanyDBusServer* self, GeanyDBusInterfacePrefs* value) {
-	GeanyDBusInterfacePrefs* _tmp0_;
+void geany_dbus_server_set_interface_prefs (GeanyDBusServer* self, GeanyDBusInterfacePreferences* value) {
+	GeanyDBusInterfacePreferences* _tmp0_;
 	g_return_if_fail (self != NULL);
 	self->priv->_interface_prefs = (_tmp0_ = _g_object_ref0 (value), _g_object_unref0 (self->priv->_interface_prefs), _tmp0_);
 	g_object_notify ((GObject *) self, "interface-prefs");
@@ -472,7 +472,7 @@ static void geany_dbus_server_class_init (GeanyDBusServerClass * klass) {
 	G_OBJECT_CLASS (klass)->set_property = geany_dbus_server_set_property;
 	G_OBJECT_CLASS (klass)->finalize = geany_dbus_server_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_SERVER_APPLICATION, g_param_spec_object ("application", "application", "application", GEANY_DBUS_TYPE_APPLICATION, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_SERVER_INTERFACE_PREFS, g_param_spec_object ("interface-prefs", "interface-prefs", "interface-prefs", GEANY_DBUS_TYPE_INTERFACE_PREFS, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_SERVER_INTERFACE_PREFS, g_param_spec_object ("interface-prefs", "interface-prefs", "interface-prefs", GEANY_DBUS_TYPE_INTERFACE_PREFERENCES, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GEANY_DBUS_SERVER_PROJECT, g_param_spec_object ("project", "project", "project", GEANY_DBUS_TYPE_PROJECT, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 }
 

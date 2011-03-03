@@ -68,6 +68,36 @@ namespace GeanyDBus
 			set { app.doc_dir = value; }
 		}	
 		
+		/* methods */
+		
+		/* note: could add args for filename, read-only, initial text, etc */
+		public bool new_document () {
+			return (Geany.Document.new () != null) ? true : false;
+		}
+		
+		public bool open_document (string filename) {
+			return (Geany.Document.open (filename, false) != null) ? true : false;
+		}
+		
+		/* note: could add the rest of args from Document.open_files() */
+		public void open_documents (string[] filenames) {
+			GLib.SList<string> fnames = new GLib.SList<string>();
+			for (int i=0; i < filenames.length; i++)
+				fnames.append(filenames[i]);
+			Geany.Document.open_files(fnames);
+		}
+		
+		public bool close_notebook_page (uint page_number) {
+			return Geany.Document.close_notebook_page(page_number);
+		}
+				
+		public string current_document {
+			owned get {
+				int current_id = Geany.Document.get_current ().index;
+				return "/org/geany/DBus/Documents/%d".printf (current_id);
+			}
+		}
+		
 		/* signal forwarders */
 		private void on_build_start (GLib.Object obj) {
 			build_starting ();
@@ -75,3 +105,20 @@ namespace GeanyDBus
 	}	
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

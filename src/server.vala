@@ -22,7 +22,7 @@ namespace GeanyDBus
 		private unowned Geany.Functions functions;
 	
 		public GeanyDBus.Application application { get; set; }
-		public GeanyDBus.InterfacePrefs interface_prefs { get; set; }
+		public GeanyDBus.InterfacePreferences interface_prefs { get; set; }
 		public GeanyDBus.Project project { get; set; }
 
 		private uint bus_id = 0;
@@ -40,7 +40,7 @@ namespace GeanyDBus
 			
 			/* Plugin API wrappers */
 			application = new GeanyDBus.Application (data.app);
-			interface_prefs = new GeanyDBus.InterfacePrefs (data.interface_prefs);
+			interface_prefs = new GeanyDBus.InterfacePreferences (data.interface_prefs);
 			project = new GeanyDBus.Project (data.app.project);
 			
 			registered_objects = new uint[] {};
